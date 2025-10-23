@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "304521388217",
+    "project_id": "jntuh-connect",
+    "storage_bucket": "jntuh-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:304521388217:android:c8b7f492ecbeeb2879fb68",
+        "android_client_info": {
+          "package_name": "com.dhethi.jntuhconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr5CJY4owRJY5SI0ZkZ2cVjg-L94i9f7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
