@@ -11,9 +11,10 @@ object Constants {
     const val ALL_UPDATES = "All"
     const val RESULTS_UPDATES = "Results"
     const val EXAM_UPDATES = "Exams"
+    const val TIMETABLE_UPDATES = "Time Tables"
     val STUDENT_RESULT_TABS =
         listOf(ALL_RESULTS, ACADEMIC_RESULTS, BACKLOG_RESULTS, CREDIT_RESULTS)
     val UPDATES_TABS =
-        listOf(ALL_UPDATES, RESULTS_UPDATES, EXAM_UPDATES)
+        listOf(ALL_UPDATES, RESULTS_UPDATES, EXAM_UPDATES,TIMETABLE_UPDATES)
 
 }

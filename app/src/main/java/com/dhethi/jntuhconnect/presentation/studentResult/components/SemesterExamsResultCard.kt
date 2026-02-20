@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -38,21 +40,26 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
             .padding(8.dp)
             .clip(RoundedCornerShape(8.dp))
             .border(
-                1.dp, Color.LightGray, RoundedCornerShape(8.dp)
+                1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(8.dp)
 
+            )
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(8.dp),
+                clip = false,
+                ambientColor = MaterialTheme.colorScheme.primary,
+                spotColor = MaterialTheme.colorScheme.primary
             )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.primary)
                 .padding(8.dp)
-
-
         ) {
             Text(
                 semesterResult.semester + " Results",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
             )
@@ -60,17 +67,17 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
 
         HorizontalDivider(
             thickness = 0.5.dp,    // Border thickness
-            color = Color.Gray // Border color
+            color = MaterialTheme.colorScheme.onBackground // Border color
         )
         semesterResult.exams.forEach { examResult: ExamResult ->
             HorizontalDivider(
                 thickness = 1.dp,    // Border thickness
-                color = Color.Gray // Border color
+                color = MaterialTheme.colorScheme.onBackground // Border color
             )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -80,13 +87,13 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
 
                 Text(
                     "ExamCode: " + examResult.examCode,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium
                 )
 
                 Text(
                     "Direct Link",
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Thin,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
@@ -101,16 +108,16 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
 
             HorizontalDivider(
                 thickness = 0.5.dp,    // Border thickness
-                color = Color.Gray // Border color
+                color = MaterialTheme.colorScheme.onBackground // Border color
             )
             HorizontalDivider(
                 thickness = 0.5.dp,    // Border thickness
-                color = Color.Gray // Border color
+                color = MaterialTheme.colorScheme.onBackground  // Border color
             )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(8.dp)
             ) {
                 Row(
@@ -118,28 +125,44 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Sub Code", fontSize = 12.sp, color = Color.DarkGray)
-                    Text("Internal", fontSize = 12.sp, color = Color.DarkGray)
-                    Text("External", fontSize = 12.sp, color = Color.DarkGray)
-                    Text("Total", fontSize = 12.sp, color = Color.DarkGray)
-                    Text("Grade", fontSize = 12.sp, color = Color.DarkGray)
-                    Text("Credits", fontSize = 12.sp, color = Color.DarkGray)
+                    Text(
+                        "Sub Code",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "Internal",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "External",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text("Total", fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text("Grade", fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text(
+                        "Credits",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
                 }
             }
             HorizontalDivider(
                 thickness = 0.5.dp,    // Border thickness
-                color = Color.Gray // Border color
+                color = MaterialTheme.colorScheme.onBackground  // Border color
             )
             examResult.subjects.forEach { subject: Subject ->
                 HorizontalDivider(
                     thickness = 0.5.dp,    // Border thickness
-                    color = Color.Gray // Border color
+                    color = MaterialTheme.colorScheme.onBackground // Border color
                 )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(8.dp)
                 ) {
                     Row(
@@ -151,23 +174,23 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                         Text(
                             subject.subjectCode,
                             fontSize = 12.sp,
-                            color = Color.DarkGray,
+                            color =MaterialTheme.colorScheme.secondary,
                             textAlign = TextAlign.Center
                         )
                         Text(
                             subject.internalMarks.toString(),
                             fontSize = 12.sp,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
                             subject.externalMarks.toString(),
                             fontSize = 12.sp,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
                             subject.totalMarks.toString(),
                             fontSize = 12.sp,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
                             text = subject.grades,
@@ -175,18 +198,18 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                             fontSize = 12.sp,
 
 
-                        )
+                            )
                         Text(
                             subject.credits.toString(),
                             fontSize = 12.sp,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.secondary
                         )
 
                     }
                     Text(
                         subject.subjectName,
                         fontSize = 12.sp,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Normal
                     )
 

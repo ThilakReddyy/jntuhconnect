@@ -16,7 +16,7 @@ data class BottomNavItemData(
 
 val bottomNavItems = listOf(
     BottomNavItemData("Results", Screen.ResultsScreen.route, Icons.Sharp.HomeMax),
-    BottomNavItemData("Jobs", Screen.JobsScreen.route, Icons.Outlined.WorkOutline),
+//    BottomNavItemData("Jobs", Screen.JobsScreen.route, Icons.Outlined.WorkOutline),
     BottomNavItemData("Updates", Screen.UpdatesScreen.route, Icons.Outlined.Notifications),
-    BottomNavItemData("Profile", Screen.ProfileScreen.route, Icons.Outlined.Person),
+//    BottomNavItemData("Profile", Screen.ProfileScreen.route, Icons.Outlined.Person),
 )

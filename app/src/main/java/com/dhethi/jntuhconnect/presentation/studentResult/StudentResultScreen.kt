@@ -44,7 +44,7 @@ fun StudentResultScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
@@ -88,7 +88,7 @@ fun StudentResultScreen(
                                     Text(
                                         text = "Not yet Implemented",
                                         fontSize = 16.sp,
-                                        color = Color.Black,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Thin,
                                         modifier = Modifier
                                             .padding(0.dp, 180.dp)

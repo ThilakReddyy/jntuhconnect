@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +28,7 @@ import androidx.navigation.navArgument
 import com.dhethi.jntuhconnect.presentation.components.CustomButtonBar
 import com.dhethi.jntuhconnect.presentation.components.CustomTopBar
 import com.dhethi.jntuhconnect.presentation.jobs.JobsScreen
+import com.dhethi.jntuhconnect.presentation.pdf.PdfScreen
 import com.dhethi.jntuhconnect.presentation.profile.ProfileScreen
 import com.dhethi.jntuhconnect.presentation.results.ResultScreen
 import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
@@ -36,6 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,15 +48,17 @@ class MainActivity : ComponentActivity() {
                 Log.w("FCM_TOKEN", "Fetching FCM registration token failed", task.exception)
                 return@addOnCompleteListener
             }
-
-            val token = task.result
-
-            Log.d("FCM_TOKEN", "FCM Token: $token")
+//
+//            val token = task.result
+//
+//            Log.d("FCM_TOKEN", "FCM Token: $token")
         }
         setContent {
             RequestNotificationPermission()
 
             JntuhConnectTheme {
+
+
                 val navController = rememberNavController()
                 val navBackStackEntry = navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry.value?.destination?.route
@@ -104,7 +110,6 @@ class MainActivity : ComponentActivity() {
                                 navArgument("rollNumber") { type = NavType.Companion.StringType }
                             )
                         ) { backStackEntry ->
-                            val rollNumber = backStackEntry.arguments?.getString("rollNumber") ?: ""
                             StudentResultScreen(navigateBack = { navigateBack() })
                         }
                     }

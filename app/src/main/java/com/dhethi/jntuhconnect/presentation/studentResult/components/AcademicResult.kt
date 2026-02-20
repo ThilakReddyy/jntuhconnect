@@ -21,7 +21,7 @@ fun AcademicResults(studentResult: AcademicResult?) {
         studentResult.semesters.forEach { semesterSummary ->
             SemesterSummaryResultCard(semesterSummary)
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
     }
 }

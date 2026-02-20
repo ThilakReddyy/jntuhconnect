@@ -1,7 +1,6 @@
 package com.dhethi.jntuhconnect.presentation.results.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,68 +17,125 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.School
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dhethi.jntuhconnect.R
 import com.dhethi.jntuhconnect.data.local.entities.StudentDetailsEntity
 
 @Composable
 fun RecentSearches(
-    students: List<StudentDetailsEntity>, navigate: (route: String) -> Unit
+    students: List<StudentDetailsEntity>,
+    onAllStudentsDelete: () -> Unit,
+    navigate: (route: String) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Spacer(modifier = Modifier.height(8.dp))
+    ClearSearchHistoryDialog(
+        showDialog = showDialog,
+        onConfirm = {
+            onAllStudentsDelete()
+            showDialog = false
+        },
+        onDismiss = {
+            showDialog = false
+        }
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+
+    ) {
+        Row(
+
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Icon(
+                imageVector = Icons.Filled.History,
+                contentDescription = "History",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                "Recent Searches",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.primary,
+                fontStyle = FontStyle.Italic
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(0.dp, 0.dp, 8.dp, 0.dp)
+                .clickable {
+                    showDialog = true
+                },
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Clear history",
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { showDialog = true }
+            )
+
+        }
+
+
+    }
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(8.dp)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.History,
-                contentDescription = "History",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
 
-            Text("Recent Searches", fontSize = 18.sp, color = Color.Black)
-
-
-        }
         students.forEach { student ->
 
-            Spacer(modifier = Modifier.height(12.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(
-                        1.dp, Color.LightGray, RoundedCornerShape(16.dp)
 
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        clip = true,
+                        ambientColor = MaterialTheme.colorScheme.primary,
+                        spotColor = MaterialTheme.colorScheme.primary
                     )
                     .clip(RoundedCornerShape(16.dp))
-                    .background(color = colorResource(R.color.inputGray))
+                    .background(color = MaterialTheme.colorScheme.background)
                     .clickable {
                         navigate("studentResults/${student.rollNumber}")
                     }
@@ -91,18 +147,21 @@ fun RecentSearches(
                     ) {
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(32.dp))
-                                .background(Color.Black)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                         {
                             Text(
                                 student.name
                                     .split(" ")
-                                    .take(2).joinToString("") { it.take(1).uppercase() },
-                                modifier = Modifier.padding(16.dp),
-                                color = Color.White,
+                                    .filter { it.isNotBlank() }
+                                    .takeLast(2)
+                                    .joinToString("")
+                                    { it.take(1).uppercase() },
+                                modifier = Modifier.padding(12.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 16.sp
+                                fontSize = 14.sp
                             )
 
                         }
@@ -113,34 +172,26 @@ fun RecentSearches(
                                 Text(
                                     student.name,
                                     fontWeight = FontWeight.Medium,
-                                    fontSize = 16.sp,
-                                    color = Color.Black
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
 
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
                                 "Roll No: ${student.rollNumber}",
-                                color = Color.DarkGray
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 12.sp,
                             )
                             Spacer(modifier = Modifier.height(2.dp))
 
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Filled.School,
-                                    contentDescription = "History",
-                                    tint = Color.DarkGray,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
+
                                 Text(
                                     student.branch,
-                                    color = Color.DarkGray,
-                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -153,11 +204,11 @@ fun RecentSearches(
 
                     HorizontalDivider(
                         thickness = 0.5.dp,    // Border thickness
-                        color = Color.Gray // Border color
+                        color = MaterialTheme.colorScheme.secondary // Border color
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
@@ -165,14 +216,20 @@ fun RecentSearches(
                                 .padding(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Semester", color = Color.DarkGray)
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Semester",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 12.sp,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 student.semester.toString(),
                                 textAlign = TextAlign.Center,
-                                color = Color.Black
-                            )
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+
+                                )
 
                         }
 
@@ -181,8 +238,13 @@ fun RecentSearches(
                                 .padding(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text("CGPA", color = Color.DarkGray)
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "CGPA",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 12.sp,
+
+                                )
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 text = if (student.backlogs > 0) {
@@ -191,8 +253,10 @@ fun RecentSearches(
                                     student.cgpa
                                 },
                                 textAlign = TextAlign.Center,
-                                color = Color.Black
-                            )
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+
+                                )
 
 
                         }
@@ -202,14 +266,21 @@ fun RecentSearches(
                                 .padding(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Backlogs", color = Color.DarkGray)
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Backlogs",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 12.sp,
+
+                                )
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 (student.backlogs).toString(),
                                 textAlign = TextAlign.Center,
-                                color = Color.Black
-                            )
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp,
+
+                                )
 
                         }
 
@@ -218,6 +289,37 @@ fun RecentSearches(
                 }
 
             }
+            Spacer(modifier = Modifier.height(16.dp))
+
         }
+    }
+}
+
+@Composable
+fun ClearSearchHistoryDialog(
+    showDialog: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text("Clear Search History")
+            },
+            text = {
+                Text("Do you want to clear the searches?")
+            },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("No")
+                }
+            }
+        )
     }
 }

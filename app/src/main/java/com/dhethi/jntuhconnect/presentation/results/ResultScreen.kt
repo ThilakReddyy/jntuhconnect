@@ -1,17 +1,14 @@
 package com.dhethi.jntuhconnect.presentation.results
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dhethi.jntuhconnect.presentation.results.components.RecentSearches
-import com.dhethi.jntuhconnect.presentation.results.components.ResultScreenHeader
 import com.dhethi.jntuhconnect.presentation.results.components.ResultsEmptyScreen
 import com.dhethi.jntuhconnect.presentation.results.components.RollSearch
 
@@ -20,14 +17,15 @@ fun ResultScreen(
     viewModel: ResultsViewModel = hiltViewModel(),
     navigate: (route: String) -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+
 
     val uiState = viewModel.state.value
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
-        ResultScreenHeader()
         RollSearch(
             uiState.rollNumber,
             onRollChange = viewModel::updateRollNumber,
@@ -38,6 +36,7 @@ fun ResultScreen(
         } else {
             RecentSearches(
                 uiState.students,
+                onAllStudentsDelete = viewModel::deleteAllStudentDetails,
                 navigate = { navigate(it) }
             )
         }

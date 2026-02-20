@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,14 +25,14 @@ fun RenderTabs(selectedTab: String, setSelectedTab: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFF3F4F6)) // light gray background (#F3F4F6)
+                .background(color = MaterialTheme.colorScheme.surface) // light gray background (#F3F4F6)
                 .padding(2.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -41,14 +42,14 @@ fun RenderTabs(selectedTab: String, setSelectedTab: (String) -> Unit) {
                     modifier = Modifier
                         .weight(1f) // equally spaced
                         .clip(RoundedCornerShape(15.dp))
-                        .background(if (selectedTab == item) Color.Black else Color.Transparent)
+                        .background(if (selectedTab == item) MaterialTheme.colorScheme.primary else Color.Transparent)
                         .clickable { setSelectedTab(item) } // ✅ FIX: call the callback
                         .padding(vertical = 6.dp, horizontal = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = item,
-                        color = if (selectedTab == item) Color.White else Color.Black,
+                        color = if (selectedTab == item) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp
                     )
                 }
