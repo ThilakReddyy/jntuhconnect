@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +24,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun PdfScreen(
@@ -50,7 +49,10 @@ fun PdfScreen(
             Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Error: ${state.error}")
+            Text(
+                text = "Error: ${state.error}",
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         else -> {
@@ -95,8 +97,7 @@ fun ZoomablePdfPage(
                 scaleX = scale,
                 scaleY = scale
             )
-            .transformable(state)
-            .then(if (scale == 1f) Modifier else Modifier), // Keeps scroll active when not zoomed
+            .transformable(state),
         contentAlignment = Alignment.Center
     ) {
         Image(

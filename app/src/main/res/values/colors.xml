@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Launch / splash background: the deep emerald-teal of the brand identity. Used as the
+      window background so the launch window and the Android 12+ system splash (which shows
+      the app icon on this color) are on-brand with no black flash.
+    -->
+    <color name="splash_background">#FF002F40</color>
+</resources>

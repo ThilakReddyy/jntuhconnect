@@ -1,221 +1,92 @@
 package com.dhethi.jntuhconnect.presentation.studentResult.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.dhethi.jntuhconnect.domain.model.ExamResult
 import com.dhethi.jntuhconnect.domain.model.SemesterResult
-import com.dhethi.jntuhconnect.domain.model.Subject
+import com.dhethi.jntuhconnect.presentation.components.AppCard
+import com.dhethi.jntuhconnect.presentation.components.StatusChip
 import com.dhethi.jntuhconnect.presentation.components.buildResultUrl
-import com.dhethi.jntuhconnect.presentation.components.getGradeColors
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
+import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
 @Composable
 fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) {
-    val context = LocalContext.current;
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(
-                1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(8.dp)
+    val context = LocalContext.current
 
-            )
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(8.dp),
-                clip = false,
-                ambientColor = MaterialTheme.colorScheme.primary,
-                spotColor = MaterialTheme.colorScheme.primary
-            )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(8.dp)
-        ) {
-            Text(
-                semesterResult.semester + " Results",
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
-        }
-
-        HorizontalDivider(
-            thickness = 0.5.dp,    // Border thickness
-            color = MaterialTheme.colorScheme.onBackground // Border color
+    AppCard {
+        Text(
+            "Semester ${semesterResult.semester}",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
         )
-        semesterResult.exams.forEach { examResult: ExamResult ->
-            HorizontalDivider(
-                thickness = 1.dp,    // Border thickness
-                color = MaterialTheme.colorScheme.onBackground // Border color
-            )
+        semesterResult.exams.forEach { exam ->
+            Spacer(Modifier.height(Dimens.spaceMd))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .clip(RoundedCornerShape(Dimens.radiusSm))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(horizontal = Dimens.spaceMd, vertical = Dimens.spaceSm),
                 verticalAlignment = Alignment.CenterVertically
-
             ) {
-
-
                 Text(
-                    "ExamCode: " + examResult.examCode,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Medium
+                    "Exam ${exam.examCode}",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
                 )
-
-                Text(
-                    "Direct Link",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Thin,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable() {
-                            val url = buildResultUrl(rollNumber, examResult)
-                            openCustomTab(context, url)
-                        }
-                )
-
-            }
-
-            HorizontalDivider(
-                thickness = 0.5.dp,    // Border thickness
-                color = MaterialTheme.colorScheme.onBackground // Border color
-            )
-            HorizontalDivider(
-                thickness = 0.5.dp,    // Border thickness
-                color = MaterialTheme.colorScheme.onBackground  // Border color
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(8.dp)
-            ) {
+                if (exam.rcrv) {
+                    StatusChip("RCRV", MaterialTheme.colorScheme.tertiary)
+                    Spacer(Modifier.width(Dimens.spaceXs))
+                }
+                if (exam.graceMarks) {
+                    StatusChip("Grace", MaterialTheme.colorScheme.secondary)
+                    Spacer(Modifier.width(Dimens.spaceXs))
+                }
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable {
+                        openCustomTab(context, buildResultUrl(rollNumber, exam))
+                    }
                 ) {
                     Text(
-                        "Sub Code",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground
+                        "Link",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Text(
-                        "Internal",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground
+                    Spacer(Modifier.width(2.dp))
+                    Icon(
+                        Icons.AutoMirrored.Rounded.OpenInNew,
+                        contentDescription = "Open official result",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(16.dp)
                     )
-                    Text(
-                        "External",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text("Total", fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
-                    Text("Grade", fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
-                    Text(
-                        "Credits",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
                 }
             }
-            HorizontalDivider(
-                thickness = 0.5.dp,    // Border thickness
-                color = MaterialTheme.colorScheme.onBackground  // Border color
-            )
-            examResult.subjects.forEach { subject: Subject ->
-                HorizontalDivider(
-                    thickness = 0.5.dp,    // Border thickness
-                    color = MaterialTheme.colorScheme.onBackground // Border color
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val gradeColors = getGradeColors(subject.grades)
-                        Text(
-                            subject.subjectCode,
-                            fontSize = 12.sp,
-                            color =MaterialTheme.colorScheme.secondary,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            subject.internalMarks.toString(),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            subject.externalMarks.toString(),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            subject.totalMarks.toString(),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            text = subject.grades,
-                            color = gradeColors.textColor,
-                            fontSize = 12.sp,
-
-
-                            )
-                        Text(
-                            subject.credits.toString(),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-
-                    }
-                    Text(
-                        subject.subjectName,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Normal
-                    )
-
-                }
-
-
+            exam.subjects.forEachIndexed { index, subject ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                SubjectRow(subject = subject, dashForZeroMarks = false)
             }
         }
     }

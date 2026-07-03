@@ -15,8 +15,8 @@ android {
         applicationId = "com.dhethi.jntuhconnect"
         minSdk = 24
         targetSdk = 36
-        versionCode = 15
-        versionName = "1.0.15"
+        versionCode = 18
+        versionName = "1.0.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

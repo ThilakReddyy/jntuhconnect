@@ -1,27 +1,22 @@
 package com.dhethi.jntuhconnect.presentation.studentResult.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.dhethi.jntuhconnect.domain.model.AcademicResult
+import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
 @Composable
 fun AcademicResults(studentResult: AcademicResult?) {
-    if (studentResult === null) {
-        return;
-    }
-
-    Column()
-    {
-        studentResult.semesters.forEach { semesterSummary ->
-            SemesterSummaryResultCard(semesterSummary)
+    val result = studentResult ?: return
+    Column(
+        modifier = Modifier.padding(horizontal = Dimens.space, vertical = Dimens.spaceSm),
+        verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
+    ) {
+        result.semesters.forEach { semester ->
+            SemesterCard(semester = semester, showSgpa = true)
         }
-        Spacer(modifier = Modifier.height(48.dp))
-
     }
 }

@@ -10,6 +10,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.domain.model.ExamResult
+import com.dhethi.jntuhconnect.presentation.theme.gradeAverage
+import com.dhethi.jntuhconnect.presentation.theme.gradeBorderline
+import com.dhethi.jntuhconnect.presentation.theme.gradeExcellent
+import com.dhethi.jntuhconnect.presentation.theme.gradeFail
+import com.dhethi.jntuhconnect.presentation.theme.gradeGood
+import com.dhethi.jntuhconnect.presentation.theme.gradeOutstanding
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -34,20 +40,15 @@ fun buildResultUrl(rollNumber: String, examResult: ExamResult): String {
 }
 
 
-data class GradeColors(val textColor: Color, val backgroundColor: Color)
-
-fun getGradeColors(grade: String): GradeColors {
-    return when (grade) {
-        "O"  -> GradeColors(Color(0xFF0F766E), Color(0xFFCCFBF1)) // teal, standout for Outstanding
-        "A+" -> GradeColors(Color(0xFF15803D), Color(0xFFEFFDF4)) // text-green-700 / bg-green-50
-        "A"  -> GradeColors(Color(0xFF16A34A), Color(0xFFEFFDF4)) // text-green-600 / bg-green-50
-        "B+" -> GradeColors(Color(0xFF2563EB), Color(0xFFEFF6FF)) // text-blue-600 / bg-blue-50
-        "B"  -> GradeColors(Color(0xFF3B82F6), Color(0xFFEFF6FF)) // text-blue-500 / bg-blue-50
-        "C"  -> GradeColors(Color(0xFFCA8A04), Color(0xFFFEFCE8)) // text-yellow-600 / bg-yellow-50
-        "D"  -> GradeColors(Color(0xFF9333EA), Color(0xFFF3E8FF)) // purple for borderline pass
-        "F"  -> GradeColors(Color(0xFFDC2626), Color(0xFFFEF2F2)) // text-red-600 / bg-red-50
-        else -> GradeColors(Color(0xFF4B5563), Color(0xFFF9FAFB)) // text-gray-600 / bg-gray-50
-    }
+/** Semantic tint for a grade letter; readable on both light and dark surfaces. */
+fun gradeColor(grade: String): Color = when (grade.uppercase()) {
+    "O" -> gradeOutstanding
+    "A+", "A" -> gradeExcellent
+    "B+", "B" -> gradeGood
+    "C" -> gradeAverage
+    "D" -> gradeBorderline
+    "F" -> gradeFail
+    else -> gradeGood
 }
 
 

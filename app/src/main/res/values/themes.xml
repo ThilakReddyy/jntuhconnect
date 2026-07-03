@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Base app theme. Lives in values/ so it is available on every supported API
+      level (minSdk 24). System bars are transparent for edge-to-edge; their icon
+      contrast is driven from Compose (see JntuhConnectTheme) so it adapts to
+      light/dark automatically.
+    -->
+    <style name="Theme.JntuhConnect" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/splash_background</item>
+    </style>
+</resources>

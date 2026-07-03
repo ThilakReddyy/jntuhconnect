@@ -21,6 +21,7 @@ fun AcademicResultsDto.toResults(): AcademicResult {
     return AcademicResult(
         backlogs = backlogs,
         cgpa = cGPA,
+        credits = credits,
         semesters = semesters.map { it.toSemester() },
     )
 }

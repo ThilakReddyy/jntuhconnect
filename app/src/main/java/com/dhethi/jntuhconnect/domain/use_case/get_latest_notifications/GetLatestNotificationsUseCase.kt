@@ -18,11 +18,19 @@ class GetLatestNotificationsUseCase @Inject constructor(
         private const val TAG = "GetLatestNotifications"
     }
 
-    operator fun invoke(page: Int, category: String): Flow<Resource<List<LatestNotification>>> =
+    operator fun invoke(
+        page: Int,
+        category: String,
+        regulation: String = "",
+        degree: String = "",
+        year: String = "",
+        title: String = ""
+    ): Flow<Resource<List<LatestNotification>>> =
         flow {
             try {
                 emit(Resource.Loading())
-                val response = repository.getNotifications(page, category)
+                val response =
+                    repository.getNotifications(page, category, regulation, degree, year, title)
                 val latestNotifications = response.map { it.toLatestNotification() }
                 emit(Resource.Success(latestNotifications))
 
