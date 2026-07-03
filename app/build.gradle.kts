@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,33 @@ plugins {
     id("com.google.dagger.hilt.android") // Hilt plugin
     kotlin("kapt")
     id("com.google.gms.google-services")
+}
+
+// --- Auto-versioning -------------------------------------------------------
+// versionCode is stored in version.properties and bumped only when a release
+// task (assembleRelease / bundleRelease / installRelease) is in the build.
+// versionName is derived as "1.0.<versionCode>".
+val versionPropsFile = file("version.properties")
+val versionProps = Properties().apply {
+    versionPropsFile.inputStream().use { load(it) }
+}
+val appVersionCode = run {
+    val baseCode = versionProps.getProperty("versionCode").trim().toInt()
+    val ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+    when {
+        // CI (GitHub Actions): monotonic code derived from the run number,
+        // always above the file baseline. Nothing is written back to the repo.
+        ciRunNumber != null -> baseCode + ciRunNumber
+        // Local release build: bump version.properties and use the new value.
+        gradle.startParameter.taskNames.any { it.contains("Release") } -> {
+            val bumped = baseCode + 1
+            versionProps.setProperty("versionCode", bumped.toString())
+            versionPropsFile.outputStream().use { versionProps.store(it, null) }
+            bumped
+        }
+        // Debug / non-release local build: use the file value as-is.
+        else -> baseCode
+    }
 }
 
 android {
@@ -15,15 +44,33 @@ android {
         applicationId = "com.dhethi.jntuhconnect"
         minSdk = 24
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.0.18"
+        versionCode = appVersionCode
+        versionName = "1.0.$appVersionCode"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            // Populated from environment variables in CI (GitHub Actions).
+            // Left unconfigured for local builds unless KEYSTORE_FILE is set.
+            System.getenv("KEYSTORE_FILE")?.let { keystorePath ->
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+
+            // Only sign with the release key when a keystore is provided (CI).
+            if (System.getenv("KEYSTORE_FILE") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
