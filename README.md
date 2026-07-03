@@ -13,7 +13,13 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin" alt="Kotlin"/>
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpack-compose" alt="Jetpack Compose"/>
   <img src="https://img.shields.io/badge/Min%20SDK-24-green?style=for-the-badge" alt="Min SDK"/>
-  <img src="https://img.shields.io/badge/Version-1.0.15-orange?style=for-the-badge" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-1.0.19-orange?style=for-the-badge" alt="Version"/>
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="70"/>
+  </a>
 </p>
 
 ---
@@ -22,16 +28,19 @@
 
 | Feature | Description |
 |---|---|
-| 🔍 **Result Search** | Search JNTUH exam results by roll number |
-| 📊 **All Results** | View complete semester-wise academic performance |
-| 🎓 **Academic Results** | Track subject-wise marks and grades |
-| ⚠️ **Backlog Results** | Quickly see pending backlogs |
-| 📢 **Latest Updates** | Stay informed with real-time JNTUH notifications (Results, Exams, Timetables) |
-| 💼 **Jobs Board** | Discover job and internship opportunities |
-| 👤 **Profile** | Manage your student profile |
-| 📄 **PDF Viewer** | View and access documents directly in-app |
+| 🔍 **Result Search** | Search JNTUH exam results by roll number, with recent-search history |
+| 📊 **Student Results** | Gradient result hero, animated **CGPA ring**, and semester cards with color-coded grade pills |
+| 🎓 **Credits Tracker** | Year-wise credit progress bars to track your academic completion |
+| 🏆 **Class Results** | Full class rankings with 🥇🥈🥉 medals |
+| ⚖️ **Result Contrast** | Compare two students' results side by side |
+| 📝 **Grace Marks** | Instant eligibility check + upload supporting proof |
+| 📢 **Latest Updates** | Real-time JNTUH notifications with filters (Results, Exams, Timetables) |
+| 🗓️ **Academic Calendars** | Live, drill-down academic calendars fetched from the backend |
+| 📖 **Syllabus** | Browse full syllabus trees by branch, year & subject |
+| 💼 **Careers** | Discover job and internship opportunities |
+| 📡 **Channels & Help** | Useful JNTUH channels plus in-app help |
+| 🎨 **Premium UI** | "Academic Emerald" design system with gradients, animations & dark mode |
 | 🔔 **Push Notifications** | Get notified instantly via Firebase Cloud Messaging |
-| 💾 **Recent Searches** | Local history of recently searched roll numbers |
 
 ---
 
@@ -50,6 +59,7 @@
 | **Notifications** | Firebase Cloud Messaging (FCM) |
 | **Preferences** | DataStore Preferences |
 | **Browser** | AndroidX Custom Tabs |
+| **CI/CD** | GitHub Actions → Google Play |
 
 ---
 
@@ -64,25 +74,28 @@ com.dhethi.jntuhconnect/
 │
 ├── data/                      # Data Layer
 │   ├── local/                 # Room database, DAOs, and entities
-│   ├── remote/                # Retrofit API interface and DTOs
+│   ├── remote/                # Retrofit API interface, DTOs & mappers
 │   └── repository/            # Repository implementations
 │
 ├── domain/                    # Domain Layer (Business Logic)
-│   ├── model/                 # Domain models
+│   ├── model/                 # Domain models (results, content trees, etc.)
 │   ├── repository/            # Repository interfaces
-│   └── use_case/              # Use cases (GetAllResults, GetAcademicResult, etc.)
+│   └── use_case/              # Use cases (GetAllResults, GetContent, etc.)
 │
 ├── di/                        # Hilt Dependency Injection modules
 │
 ├── presentation/              # Presentation Layer (UI)
-│   ├── components/            # Reusable composable components
-│   ├── results/               # Roll Number search screen
-│   ├── studentResult/         # Detailed student result screen
-│   ├── updates/               # JNTUH notifications/updates screen
-│   ├── jobs/                  # Jobs board screen
+│   ├── components/            # Reusable composables (hero, cards, pills, rings…)
+│   ├── theme/                 # "Academic Emerald" colors, dimens & theming
+│   ├── home/                  # Home (search) screen
+│   ├── explore/               # Explore tools grid
 │   ├── profile/               # Profile screen
-│   ├── pdf/                   # PDF viewer screen
-│   └── theme/                 # App colors, typography, and themes
+│   ├── studentResult/         # Detailed student result screen
+│   ├── classResult/           # Class ranking screen
+│   ├── resultContrast/        # Side-by-side result comparison
+│   ├── graceMarks/            # Grace marks eligibility + proof upload
+│   ├── updates/               # JNTUH notifications/updates screen
+│   └── content/               # Calendars, Syllabus, Channels, Careers, Help
 │
 └── service/                   # Firebase Messaging Service
 ```
@@ -105,6 +118,8 @@ https://jntuhresults.dhethi.com/api/
 | `GET /getAcademicResult?rollNumber=` | Fetch academic/regular results |
 | `GET /getBacklogs?rollNumber=` | Fetch backlog subjects |
 | `GET /notifications?page=&category=` | Fetch paginated JNTUH notifications |
+| `GET /calendars` | Fetch the academic calendar tree |
+| `GET /syllabus` | Fetch the syllabus tree |
 
 ---
 
@@ -112,8 +127,8 @@ https://jntuhresults.dhethi.com/api/
 
 ### Prerequisites
 
-- Android Studio **Hedgehog** (2023.1.1) or later
-- JDK 11+
+- Android Studio **Ladybug** (2024.2) or later
+- JDK 17+ (required by Android Gradle Plugin 8.x)
 - Android SDK with API Level **24** or higher
 - A `google-services.json` file (Firebase configuration)
 
@@ -138,15 +153,15 @@ https://jntuhresults.dhethi.com/api/
 
 ---
 
-## 📱 Screens
+## 📱 Navigation
 
-| Screen | Route | Description |
-|---|---|---|
-| Results Search | `results` | Home screen — search by roll number |
-| Student Results | `studentResults/{rollNumber}` | Detailed result view with tabs |
-| Updates | `updates` | Latest JNTUH notifications |
-| Jobs | `jobs` | Job listings and opportunities |
-| Profile | `profile` | Student profile management |
+The app is organized into **3 tabs**, with everything else reachable from them:
+
+| Tab | Description |
+|---|---|
+| 🏠 **Home** | Search results by roll number; jump into student/class results |
+| 🧭 **Explore** | Tools grid — Class Result, Result Contrast, Grace Marks, Calendars, Syllabus, Careers, Channels, Help |
+| 👤 **Profile** | Student profile, saved roll number, updates & settings |
 
 ---
 
@@ -169,11 +184,30 @@ Notification permission is requested at runtime on Android 13+ (`TIRAMISU` and a
 | Min SDK | 24 (Android 7.0 Nougat) |
 | Target SDK | 36 |
 | Compile SDK | 36 |
-| Version Name | 1.0.15 |
-| Version Code | 15 |
+| Android Gradle Plugin | 8.13.0 |
+| Version | Auto-managed (see below) |
+
+### Versioning
+`versionCode` is the single source of truth in [`app/version.properties`](app/version.properties);
+`versionName` is derived as `1.0.<versionCode>`. It bumps **automatically**:
+- **Local release builds** (`assembleRelease` / `bundleRelease`) increment `version.properties`.
+- **CI builds** derive `versionCode = 18 + GITHUB_RUN_NUMBER`, guaranteeing an ever-increasing code.
 
 ### Release Build
 The release build has **ProGuard/R8 minification enabled** with full NDK debug symbols for better crash reports.
+
+---
+
+## 🤖 CI/CD — Auto-deploy to Play Store
+
+Every push to `main` triggers [`.github/workflows/deploy-play-store.yml`](.github/workflows/deploy-play-store.yml), which:
+
+1. Builds a **signed release AAB** (`bundleRelease`).
+2. Uploads it to the Play Store **internal** track via the Google Play Developer API.
+3. Updates the version badge in this README to the deployed version.
+
+Requires these GitHub repository secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`,
+`KEY_ALIAS`, `KEY_PASSWORD`, and `PLAY_SERVICE_ACCOUNT_JSON`.
 
 ---
 
