@@ -95,6 +95,16 @@ val brandGradientDarkStart = Color(0xFF0B7F5C)
 val brandGradientDarkMid = Color(0xFF0C6E73)
 val brandGradientDarkEnd = Color(0xFF0A5560)
 
+
+val brandStatusGradientDarkStart = Color(0xFF0B7F5C)
+val brandStatusGradientDarkMid = Color(0xFF0B736C)
+val brandStatusGradientDarkEnd = Color(0xFF0B626A)
+
+val brandStatusGradientLightStart = Color(0xFF10B981)
+val brandStatusGradientLightMid = Color(0xFF0EA89E)
+val brandStatusGradientLightEnd = Color(0xFF0E9196)
+
+
 // Amber accent used sparingly for highlights / CTAs / "new" markers.
 val accentAmber = Color(0xFFF59E0B)
 val accentAmberSoft = Color(0xFFFFE8C2)

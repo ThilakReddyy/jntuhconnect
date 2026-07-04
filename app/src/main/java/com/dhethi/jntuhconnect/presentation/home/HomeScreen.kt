@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -56,6 +57,7 @@ import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.explore.homeQuickTools
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 import com.dhethi.jntuhconnect.presentation.theme.brandGradient
+import com.dhethi.jntuhconnect.presentation.theme.brandGradientStatusBar
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -106,6 +108,7 @@ fun HomeScreen(
         }
     }
 
+    val dark = isSystemInDarkTheme()
     val listState = rememberLazyListState()
     val heroScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex >= 1 } }
 
@@ -185,7 +188,13 @@ fun HomeScreen(
             }
         }
     }
-        StatusBarScrim(visible = heroScrolled)
+        StatusBarScrim(
+            brush = if (heroScrolled) {
+                SolidColor(MaterialTheme.colorScheme.background)
+            } else {
+                brandGradientStatusBar(dark)
+            }
+        )
     }
 }
 

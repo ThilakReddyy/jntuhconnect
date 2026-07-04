@@ -65,6 +65,16 @@ fun brandGradient(dark: Boolean): Brush = Brush.linearGradient(
     }
 )
 
+@Composable
+@ReadOnlyComposable
+fun brandGradientStatusBar(dark: Boolean): Brush = Brush.linearGradient(
+    colors = if (dark) {
+        listOf(brandStatusGradientDarkStart, brandStatusGradientDarkMid, brandStatusGradientDarkEnd)
+    } else {
+        listOf(brandStatusGradientLightStart, brandStatusGradientLightMid, brandStatusGradientLightEnd)
+    }
+)
+
 /** Vertical variant used for tall hero surfaces. */
 @Composable
 @ReadOnlyComposable

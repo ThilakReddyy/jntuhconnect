@@ -52,6 +52,7 @@ import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.SectionHeader
 import com.dhethi.jntuhconnect.presentation.components.SegmentedTabs
 import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
+import androidx.compose.ui.graphics.SolidColor
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.home.RecentStudentCard
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
@@ -78,6 +79,7 @@ fun ProfileScreen(
         }.getOrNull() ?: ""
     }
 
+    val dark = isSystemInDarkTheme()
     val listState = rememberLazyListState()
     val headerScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex >= 1 } }
 
@@ -221,7 +223,13 @@ fun ProfileScreen(
             )
         }
     }
-        StatusBarScrim(visible = headerScrolled)
+        StatusBarScrim(
+            brush = if (headerScrolled) {
+                SolidColor(MaterialTheme.colorScheme.background)
+            } else {
+                brandGradient(dark)
+            }
+        )
     }
 }
 

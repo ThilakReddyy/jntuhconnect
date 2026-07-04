@@ -16,12 +16,12 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,7 +60,6 @@ fun ExploreScreen(
     }
 
     val gridState = rememberLazyGridState()
-    val headerScrolled by remember { derivedStateOf { gridState.firstVisibleItemIndex >= 0 } }
 
     Box(modifier = Modifier.fillMaxSize()) {
     LazyVerticalGrid(
@@ -100,7 +99,7 @@ fun ExploreScreen(
         sectionHeader("Resources")
         items(resourceTools, key = { it.title }) { tool -> tool.card(::onTool) }
     }
-        StatusBarScrim(visible = headerScrolled)
+        StatusBarScrim(brush = SolidColor(MaterialTheme.colorScheme.background))
     }
 }
 
