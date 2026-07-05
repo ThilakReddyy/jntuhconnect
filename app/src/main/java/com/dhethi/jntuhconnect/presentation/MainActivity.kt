@@ -41,6 +41,7 @@ import com.dhethi.jntuhconnect.presentation.content.CareersScreen
 import com.dhethi.jntuhconnect.presentation.content.ChannelsScreen
 import com.dhethi.jntuhconnect.presentation.content.HelpScreen
 import com.dhethi.jntuhconnect.presentation.content.SyllabusScreen
+import com.dhethi.jntuhconnect.presentation.chatbot.ChatbotScreen
 import com.dhethi.jntuhconnect.presentation.classresult.ClassResultScreen
 import com.dhethi.jntuhconnect.presentation.contrast.ResultContrastScreen
 import com.dhethi.jntuhconnect.presentation.explore.ExploreScreen
@@ -186,6 +187,9 @@ private fun AppNavHost(
         }
         composable(Screen.Help.route) {
             HelpScreen(navigateBack = { navController.popBackStack() })
+        }
+        composable(Screen.Chatbot.route) {
+            ChatbotScreen(navigateBack = { navController.popBackStack() })
         }
     }
 }

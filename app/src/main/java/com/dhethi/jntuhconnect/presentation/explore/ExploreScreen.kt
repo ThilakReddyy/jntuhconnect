@@ -90,6 +90,10 @@ fun ExploreScreen(
             }
         }
 
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            assistantTool.card(::onTool)
+        }
+
         sectionHeader("Your results")
         items(resultTools, key = { it.title }) { tool -> tool.card(::onTool) }
 

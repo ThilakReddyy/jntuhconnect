@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     data object Channels : Screen("channels")
     data object Careers : Screen("careers")
     data object Help : Screen("help")
+    data object Chatbot : Screen("chatbot")
 
     companion object {
         /** Routes that show the bottom navigation bar. */

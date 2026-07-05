@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Quiz
 import androidx.compose.material.icons.rounded.School
+import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material.icons.rounded.WorkOutline
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.ui.graphics.Color
@@ -49,6 +50,12 @@ private val cRose = Color(0xFFE11D48)
 private val cCyan = Color(0xFF0891B2)
 private val cGreen = Color(0xFF16A34A)
 private val cIndigo = Color(0xFF4F46E5)
+
+/** Flagship AI assistant (coming soon). */
+val assistantTool = ToolItem(
+    "AI Assistant", "Ask about results, backlogs, syllabus & exams",
+    Icons.Rounded.SmartToy, cViolet, ToolAction.Route(Screen.Chatbot.route)
+)
 
 /** Tools that operate on a single student's result. */
 val resultTools = listOf(
