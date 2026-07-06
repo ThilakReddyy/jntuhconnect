@@ -138,5 +138,7 @@ dependencies {
 
     implementation("com.google.firebase:firebase-messaging:24.0.0")
 
+    // Google Play In-App Updates
+    implementation(libs.app.update)
 
 }
