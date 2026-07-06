@@ -61,6 +61,7 @@ fun StudentResultHero(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
+
                 .padding(horizontal = Dimens.spaceLg)
                 .padding(bottom = Dimens.spaceLg)
         ) {

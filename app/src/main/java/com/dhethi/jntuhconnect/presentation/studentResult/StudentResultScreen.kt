@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.Constants
@@ -41,6 +43,8 @@ import com.dhethi.jntuhconnect.presentation.components.ErrorScreen
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.SegmentedTabs
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
+import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
+import com.dhethi.jntuhconnect.presentation.theme.brandGradientStatusBar
 import com.dhethi.jntuhconnect.presentation.studentResult.components.AcademicResults
 import com.dhethi.jntuhconnect.presentation.studentResult.components.AllResults
 import com.dhethi.jntuhconnect.presentation.studentResult.components.BacklogsResults
@@ -64,6 +68,7 @@ fun StudentResultScreen(
         when {
             state.studentDetails != null -> {
                 val details = state.studentDetails
+                val dark = isSystemInDarkTheme()
                 val listState = rememberLazyListState()
                 // Once the hero (item 0) scrolls off, the tabs pin to the top and would
                 // sit under the system status bar — inset them by the status bar height then.
@@ -75,43 +80,57 @@ fun StudentResultScreen(
                     targetValue = if (heroPinned) statusBarTop else 0.dp,
                     label = "headerTopInset"
                 )
-                LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                    item {
-                        StudentResultHero(
-                            details = details,
-                            academic = state.academicResult,
-                            onBack = navigateBack
-                        )
-                    }
-                    stickyHeader {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                                .padding(top = headerTopInset)
-                                .padding(horizontal = Dimens.space, vertical = Dimens.spaceSm)
-                        ) {
-                            SegmentedTabs(
-                                options = Constants.STUDENT_RESULT_TABS,
-                                selected = state.currentTab,
-                                onSelect = viewModel::setSelectedTab
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                        item {
+                            StudentResultHero(
+                                details = details,
+                                academic = state.academicResult,
+                                onBack = navigateBack
                             )
                         }
-                    }
-                    item {
-                        AnimatedContent(
-                            targetState = state.currentTab,
-                            transitionSpec = {
-                                (fadeIn(tween(200)) togetherWith fadeOut(tween(150)))
-                            },
-                            label = "tabContent"
-                        ) { tab ->
-                            TabContent(tab, state) { viewModel.setSelectedTab(it) }
+
+                        stickyHeader {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(top = headerTopInset)
+                                    .padding(horizontal = Dimens.space, vertical = Dimens.spaceSm)
+                            ) {
+                                SegmentedTabs(
+                                    options = Constants.STUDENT_RESULT_TABS,
+                                    selected = state.currentTab,
+                                    onSelect = viewModel::setSelectedTab
+                                )
+                            }
                         }
+                        item {
+                            AnimatedContent(
+                                targetState = state.currentTab,
+                                transitionSpec = {
+                                    (fadeIn(tween(200)) togetherWith fadeOut(tween(150)))
+                                },
+                                label = "tabContent"
+                            ) { tab ->
+                                TabContent(tab, state) { viewModel.setSelectedTab(it) }
+                            }
+                        }
+                        item { Spacer(Modifier.height(Dimens.spaceXxl)) }
+
                     }
-                    item { Spacer(Modifier.height(Dimens.spaceXxl)) }
+                    // Keep scrolling content from bleeding under the system clock: brand
+                    // gradient while the hero is at rest, solid background once it scrolls off.
+                    StatusBarScrim(
+                        brush = if (heroPinned) {
+                            SolidColor(MaterialTheme.colorScheme.background)
+                        } else {
+                            brandGradientStatusBar(dark)
+                        }
+                    )
                 }
             }
+
 
             state.error.isNotEmpty() -> {
                 BackHeader(navigateBack)
