@@ -52,7 +52,7 @@ val ShapeLg = RoundedCornerShape(Dimens.radiusLg)
 val ShapeXl = RoundedCornerShape(Dimens.radiusXl)
 
 /**
- * The signature emerald→teal brand gradient, mode-aware. Use for hero headers,
+ * The signature ink→graphite Obsidian gradient, mode-aware. Use for hero headers,
  * primary CTAs and accent surfaces.
  */
 @Composable

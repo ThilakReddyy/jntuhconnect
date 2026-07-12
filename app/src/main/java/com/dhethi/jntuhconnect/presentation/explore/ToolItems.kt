@@ -40,16 +40,16 @@ data class ToolItem(
     val action: ToolAction
 )
 
-// A varied accent palette so the grid reads as colorful but coherent.
-private val cEmerald = Color(0xFF0E9F6E)
-private val cTeal = Color(0xFF0E7C86)
-private val cBlue = Color(0xFF2563EB)
-private val cAmber = Color(0xFFF59E0B)
-private val cViolet = Color(0xFF7C3AED)
-private val cRose = Color(0xFFE11D48)
-private val cCyan = Color(0xFF0891B2)
-private val cGreen = Color(0xFF16A34A)
-private val cIndigo = Color(0xFF4F46E5)
+// Vivid accents are reserved for icons; cards, labels and surrounding surfaces stay neutral.
+private val cEmerald = Color(0xFF20B878)
+private val cTeal = Color(0xFF18A6A6)
+private val cBlue = Color(0xFF4C82F7)
+private val cAmber = Color(0xFFE5A83A)
+private val cViolet = Color(0xFF8B5CF6)
+private val cRose = Color(0xFFE05A78)
+private val cCyan = Color(0xFF22A7C7)
+private val cGreen = Color(0xFF43A865)
+private val cIndigo = Color(0xFF6574D9)
 
 /** Flagship AI assistant (coming soon). */
 val assistantTool = ToolItem(

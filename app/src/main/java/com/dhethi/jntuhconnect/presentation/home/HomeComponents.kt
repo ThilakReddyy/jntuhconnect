@@ -131,7 +131,7 @@ fun QuickToolCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(ShapeMd)
-                    .background(tool.accent.copy(alpha = 0.16f)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(tool.icon, contentDescription = null, tint = tool.accent, modifier = Modifier.size(22.dp))

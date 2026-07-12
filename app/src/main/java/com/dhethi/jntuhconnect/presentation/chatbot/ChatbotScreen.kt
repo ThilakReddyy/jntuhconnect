@@ -54,27 +54,27 @@ private val chatSkills = listOf(
     ChatSkill(
         "Academic results",
         "\"What's my CGPA?\" — instant marks & grades",
-        Icons.Rounded.School, Color(0xFF0E9F6E)
+        Icons.Rounded.School, Color(0xFF20B878)
     ),
     ChatSkill(
         "Backlogs",
         "\"Which subjects do I still need to clear?\"",
-        Icons.Rounded.ErrorOutline, Color(0xFFE11D48)
+        Icons.Rounded.ErrorOutline, Color(0xFFE05A78)
     ),
     ChatSkill(
         "Syllabus",
         "\"Show me the units for DBMS this sem.\"",
-        Icons.Rounded.MenuBook, Color(0xFF0E7C86)
+        Icons.Rounded.MenuBook, Color(0xFF18A6A6)
     ),
     ChatSkill(
         "Academic calendars",
         "\"When does the next semester begin?\"",
-        Icons.Rounded.CalendarMonth, Color(0xFF4F46E5)
+        Icons.Rounded.CalendarMonth, Color(0xFF6574D9)
     ),
     ChatSkill(
         "Exam details",
         "\"When are my end-sem exams scheduled?\"",
-        Icons.Rounded.EventNote, Color(0xFFF59E0B)
+        Icons.Rounded.EventNote, Color(0xFFE5A83A)
     )
 )
 
@@ -186,7 +186,7 @@ private fun SkillRow(skill: ChatSkill) {
                 modifier = Modifier
                     .size(Dimens.avatar)
                     .clip(RoundedCornerShape(Dimens.radiusMd))
-                    .background(skill.accent.copy(alpha = 0.15f)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

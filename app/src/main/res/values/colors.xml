@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Launch / splash background: the deep emerald-teal of the brand identity. Used as the
-      window background so the launch window and the Android 12+ system splash (which shows
-      the app icon on this color) are on-brand with no black flash.
+      Launch background for the Obsidian Academic identity. Keeping the launch window
+      close to the dark app surface avoids a bright flash before Compose renders.
     -->
-    <color name="splash_background">#FF002F40</color>
+    <color name="splash_background">#FF08090A</color>
+    <color name="splash_icon_background">#FF1C2024</color>
 </resources>

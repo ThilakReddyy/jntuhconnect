@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,7 +68,7 @@ fun ToolCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(ShapeMd)
-                    .background(accent.copy(alpha = 0.16f).compositeOver(MaterialTheme.colorScheme.surface)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
                 Icon(
