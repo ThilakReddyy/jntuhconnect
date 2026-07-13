@@ -8,17 +8,23 @@ import com.google.gson.annotations.SerializedName
 @Keep
 data class StudentAllResultDto(
     @SerializedName("details")
-    val details: DetailsDto,
+    val details: DetailsDto?,
     @SerializedName("results")
-    val results: List<SemesterResultDto>
+    val results: List<SemesterResultDto>?
 )
 
 
-fun StudentAllResultDto.toStudentAllResult(): StudentAllResult {
-    return StudentAllResult(
-        details = details.toDetails(),
-        results = results.map { it.toSemesterResult() }
-    )
+fun StudentAllResultDto.toStudentAllResult(): StudentAllResult? {
+    val responseDetails = details ?: return null
+    val responseResults = results ?: return null
+    return try {
+        StudentAllResult(
+            details = responseDetails.toDetails(),
+            results = responseResults.map { it.toSemesterResult() }
+        )
+    } catch (_: NullPointerException) {
+        null
+    }
 
 
 }

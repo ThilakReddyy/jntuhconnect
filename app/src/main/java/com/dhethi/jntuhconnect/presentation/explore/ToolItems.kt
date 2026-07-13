@@ -53,7 +53,7 @@ private val cIndigo = Color(0xFF6574D9)
 
 /** Flagship AI assistant (coming soon). */
 val assistantTool = ToolItem(
-    "AI Assistant", "Ask about results, backlogs, syllabus & exams",
+    "AI Assistant", "Coming soon · Results, backlogs, syllabus & exams",
     Icons.Rounded.SmartToy, cViolet, ToolAction.Route(Screen.Chatbot.route)
 )
 

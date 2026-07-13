@@ -4,6 +4,7 @@ import com.dhethi.jntuhconnect.common.Resource
 import com.dhethi.jntuhconnect.data.remote.dto.toStudentAcademicResult
 import com.dhethi.jntuhconnect.domain.model.StudentAcademicResult
 import com.dhethi.jntuhconnect.domain.repository.JntuhResultsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okio.IOException
@@ -20,12 +21,21 @@ class GetAcademicResultUseCase @Inject constructor(
             if (dto.details == null) {
                 emit(Resource.Error("Your Roll Number has been Queued. Please Try again Later"))
             } else {
-                emit(Resource.Success(dto.toStudentAcademicResult()))
+                val academicResult = dto.toStudentAcademicResult()
+                if (academicResult == null) {
+                    emit(Resource.Error("Academic results are incomplete. Please try again shortly."))
+                } else {
+                    emit(Resource.Success(academicResult))
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "A unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't Reach Server. Check Your Internet Connection"))
+        } catch (e: Exception) {
+            emit(Resource.Error("We couldn't read the academic response. Please try again."))
         }
     }
 }

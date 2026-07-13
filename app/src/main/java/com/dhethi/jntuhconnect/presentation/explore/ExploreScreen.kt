@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -64,7 +64,7 @@ fun ExploreScreen(
     Box(modifier = Modifier.fillMaxSize()) {
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Fixed(2),
+                columns = GridCells.Adaptive(minSize = 148.dp),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = Dimens.space,
@@ -125,6 +125,6 @@ private fun ToolItem.card(onTool: (ToolItem) -> Unit) {
         icon = tool.icon,
         accent = tool.accent,
         onClick = { onTool(tool) },
-        modifier = Modifier.height(120.dp)
+        modifier = Modifier.heightIn(min = 120.dp)
     )
 }

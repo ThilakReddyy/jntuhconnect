@@ -22,11 +22,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,17 +46,20 @@ import com.dhethi.jntuhconnect.presentation.components.SectionHeader
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
 import com.dhethi.jntuhconnect.presentation.components.StatusChip
 import com.dhethi.jntuhconnect.presentation.components.gradeColor
+import com.dhethi.jntuhconnect.presentation.components.isValidRollNumber
 import com.dhethi.jntuhconnect.presentation.home.initials
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 import com.dhethi.jntuhconnect.presentation.theme.brandGradient
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 
 @Composable
 fun ResultContrastScreen(
     viewModel: ContrastViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    onOpenStudent: (roll: String) -> Unit
 ) {
     val state = viewModel.state.value
+    val secondRollFocus = remember { FocusRequester() }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -87,20 +94,27 @@ fun ResultContrastScreen(
                         value = state.roll1,
                         onValueChange = viewModel::updateRoll1,
                         label = "First roll number",
-                        showSearchAction = false
+                        showSearchAction = false,
+                        imeAction = ImeAction.Next,
+                        onNext = { secondRollFocus.requestFocus() }
                     )
                     Spacer(Modifier.height(Dimens.spaceMd))
                     RollNumberField(
                         value = state.roll2,
                         onValueChange = viewModel::updateRoll2,
+                        modifier = Modifier.focusRequester(secondRollFocus),
                         label = "Second roll number",
-                        showSearchAction = false
+                        showSearchAction = false,
+                        imeAction = ImeAction.Done,
+                        onSubmit = viewModel::compare
                     )
                     Spacer(Modifier.height(Dimens.space))
                     PrimaryButton(
                         text = "Compare",
                         onClick = viewModel::compare,
                         loading = state.isLoading,
+                        enabled = isValidRollNumber(state.roll1) &&
+                            isValidRollNumber(state.roll2) && state.roll1 != state.roll2,
                         icon = Icons.Rounded.CompareArrows,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -129,8 +143,8 @@ fun ResultContrastScreen(
                 val p2 = contrast.studentProfiles[1]
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMd)) {
-                        ProfileCard(p1, Modifier.weight(1f))
-                        ProfileCard(p2, Modifier.weight(1f))
+                        ProfileCard(p1, Modifier.weight(1f)) { onOpenStudent(p1.rollNumber) }
+                        ProfileCard(p2, Modifier.weight(1f)) { onOpenStudent(p2.rollNumber) }
                     }
                 }
                 item {
@@ -160,9 +174,13 @@ fun ResultContrastScreen(
 }
 
 @Composable
-private fun ProfileCard(profile: ContrastProfile, modifier: Modifier = Modifier) {
-    val dark = isSystemInDarkTheme()
-    AppCard(modifier = modifier) {
+private fun ProfileCard(
+    profile: ContrastProfile,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val dark = LocalJntuhDarkTheme.current
+    AppCard(modifier = modifier, onClick = onClick) {
         Box(
             modifier = Modifier
                 .size(Dimens.avatar)

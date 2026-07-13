@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.dhethi.jntuhconnect.data.local.entities.StudentDetailsEntity
 import com.dhethi.jntuhconnect.domain.model.LatestNotification
 import com.dhethi.jntuhconnect.presentation.components.GradeDot
-import com.dhethi.jntuhconnect.presentation.components.ROLL_NUMBER_LENGTH
+import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
 import com.dhethi.jntuhconnect.presentation.components.StatusChip
 import com.dhethi.jntuhconnect.presentation.components.gradeColor
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
@@ -47,7 +47,7 @@ import com.dhethi.jntuhconnect.presentation.theme.Shape
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
 import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
 import com.dhethi.jntuhconnect.presentation.theme.brandGradient
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 
 /** White search bar that sits on the gradient hero. */
 @Composable
@@ -66,7 +66,7 @@ fun HeroSearchBar(
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(
                 value = value,
-                onValueChange = { onValueChange(it.uppercase().take(ROLL_NUMBER_LENGTH)) },
+                onValueChange = { onValueChange(normalizeRollNumber(it)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.titleMedium,
@@ -92,7 +92,7 @@ fun HeroSearchBar(
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-            val dark = isSystemInDarkTheme()
+            val dark = LocalJntuhDarkTheme.current
             Box(
                 modifier = Modifier
                     .padding(6.dp)
@@ -162,7 +162,7 @@ fun RecentStudentCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     val cgpa = if (student.backlogs > 0) "—" else student.cgpa
     Surface(
         onClick = onClick,

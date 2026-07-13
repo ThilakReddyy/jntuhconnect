@@ -17,20 +17,30 @@ import com.dhethi.jntuhconnect.presentation.theme.gradeFail
 import com.dhethi.jntuhconnect.presentation.theme.gradeGood
 import com.dhethi.jntuhconnect.presentation.theme.gradeOutstanding
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 
 
-fun openCustomTab(context: Context, url: String) {
+fun isSafeWebUrl(url: String): Boolean = runCatching {
+    val uri = URI(url.trim())
+    uri.scheme?.lowercase() in setOf("http", "https") && !uri.host.isNullOrBlank()
+}.getOrDefault(false)
+
+fun openCustomTab(context: Context, url: String): Boolean {
+    if (!isSafeWebUrl(url)) return false
     val customTabsIntent = CustomTabsIntent.Builder()
         .setShowTitle(true)
         .setInstantAppsEnabled(true)
         .build()
 
-    customTabsIntent.launchUrl(context, url.toUri())
+    return runCatching {
+        customTabsIntent.launchUrl(context, url.trim().toUri())
+        true
+    }.getOrDefault(false)
 }
 
 fun buildResultUrl(rollNumber: String, examResult: ExamResult): String {
-    val degree = if (rollNumber[5] == 'R') "bpharmacy" else "btech"
+    val degree = if (rollNumber.getOrNull(5) == 'R') "bpharmacy" else "btech"
     val resultType = if (examResult.rcrv) "gradercrv" else "null"
     val gradeType = if (examResult.rcrv) "rcrvintgrade" else "intgrade"
 
@@ -66,15 +76,21 @@ fun isInternetAvailable(context: Context): Boolean {
 }
 
 
-fun isServerReachable( timeout: Int = 3000): Boolean {
+fun isServerReachable(timeout: Int = 3000): Boolean {
+    val connection = try {
+        URL(Constants.BASE_URL + "health").openConnection() as HttpURLConnection
+    } catch (e: Exception) {
+        return false
+    }
     return try {
-        val url = URL(Constants.BASE_URL+"health")
-        val connection = url.openConnection() as HttpURLConnection
         connection.connectTimeout = timeout
-        connection.requestMethod = "GET" // lightweight request
+        connection.readTimeout = timeout
+        connection.requestMethod = "GET"
 
         connection.responseCode == HttpURLConnection.HTTP_OK
     } catch (e: Exception) {
         false
+    } finally {
+        connection.disconnect()
     }
 }

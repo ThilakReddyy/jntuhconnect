@@ -31,7 +31,7 @@ class AppPreferences @Inject constructor(
         .map { ThemeMode.fromName(it[Keys.THEME_MODE]) }
 
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data
-        .map { it[Keys.NOTIFICATIONS] ?: true }
+        .map { it[Keys.NOTIFICATIONS] ?: false }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }

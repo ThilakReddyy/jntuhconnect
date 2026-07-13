@@ -8,7 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -68,7 +68,7 @@ fun StudentResultScreen(
         when {
             state.studentDetails != null -> {
                 val details = state.studentDetails
-                val dark = isSystemInDarkTheme()
+                val dark = LocalJntuhDarkTheme.current
                 val listState = rememberLazyListState()
                 // Once the hero (item 0) scrolls off, the tabs pin to the top and would
                 // sit under the system status bar — inset them by the status bar height then.
@@ -113,7 +113,7 @@ fun StudentResultScreen(
                                 },
                                 label = "tabContent"
                             ) { tab ->
-                                TabContent(tab, state) { viewModel.setSelectedTab(it) }
+                                TabContent(tab, state, viewModel::retryTab)
                             }
                         }
                         item { Spacer(Modifier.height(Dimens.spaceXxl)) }
@@ -152,7 +152,11 @@ private fun TabContent(
     onRetry: (String) -> Unit
 ) {
     when (tab) {
-        Constants.ACADEMIC_RESULTS -> AcademicResults(state.academicResult)
+        Constants.ACADEMIC_RESULTS -> when {
+            state.isLoading -> ShimmerList(count = 2)
+            state.error.isNotEmpty() -> InlineError(state.error) { onRetry(Constants.ACADEMIC_RESULTS) }
+            else -> AcademicResults(state.academicResult)
+        }
 
         Constants.ALL_RESULTS -> when {
             state.allLoading -> ShimmerList(count = 2)
@@ -203,7 +207,6 @@ private fun BackHeader(navigateBack: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(start = 40.dp)
         )
     }
 }

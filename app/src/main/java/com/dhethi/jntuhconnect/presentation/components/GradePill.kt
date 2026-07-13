@@ -12,9 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.compositeOver
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 
 /**
  * Small colored chip for a grade letter (O, A+, B, F, ...). The tint comes from the
@@ -26,6 +28,7 @@ fun GradePill(
     modifier: Modifier = Modifier
 ) {
     val base = gradeColor(grade)
+    val content = semanticContentColor(base)
     val container = base.copy(alpha = 0.16f).compositeOver(MaterialTheme.colorScheme.surface)
     Box(
         modifier = modifier
@@ -37,7 +40,7 @@ fun GradePill(
     ) {
         Text(
             text = grade.ifBlank { "-" },
-            color = base,
+            color = content,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold
         )
@@ -61,6 +64,7 @@ fun StatusChip(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val content = semanticContentColor(color)
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -70,9 +74,16 @@ fun StatusChip(
     ) {
         Text(
             text = text,
-            color = color,
+            color = content,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold
         )
     }
+}
+
+@Composable
+private fun semanticContentColor(base: Color): Color = if (LocalJntuhDarkTheme.current) {
+    lerp(base, Color.White, 0.35f)
+} else {
+    lerp(base, Color.Black, 0.30f)
 }

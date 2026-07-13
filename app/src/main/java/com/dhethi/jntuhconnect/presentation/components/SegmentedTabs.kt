@@ -64,7 +64,7 @@ fun SegmentedTabs(
                     .selectable(
                         selected = isSelected,
                         role = Role.Tab,
-                        onClick = { onSelect(option) }
+                        onClick = { if (!isSelected) onSelect(option) }
                     )
                     .padding(vertical = Dimens.spaceSm, horizontal = Dimens.spaceXs),
                 contentAlignment = Alignment.Center

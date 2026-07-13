@@ -1,7 +1,7 @@
 package com.dhethi.jntuhconnect.presentation.studentResult.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,7 +42,7 @@ fun StudentResultHero(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     val hasBacklogs = (academic?.backlogs ?: 0) > 0
     val cgpaValue = academic?.cgpa?.toFloatOrNull() ?: 0f
     val centerValue = when {
@@ -54,8 +54,8 @@ fun StudentResultHero(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(brandGradient(dark))
             .clip(RoundedCornerShape(bottomStart = Dimens.radiusXl, bottomEnd = Dimens.radiusXl))
+            .background(brandGradient(dark))
     ) {
         Column(
             modifier = Modifier

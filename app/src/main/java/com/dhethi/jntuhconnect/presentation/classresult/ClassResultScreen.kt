@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.EmojiEvents
@@ -30,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.domain.model.ClassBacklogStudent
@@ -39,20 +39,25 @@ import com.dhethi.jntuhconnect.presentation.components.AppTopBar
 import com.dhethi.jntuhconnect.presentation.components.EmptyState
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.RollNumberField
+import com.dhethi.jntuhconnect.presentation.components.SectionHeader
 import com.dhethi.jntuhconnect.presentation.components.SegmentedTabs
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
 import com.dhethi.jntuhconnect.presentation.components.StatTile
 import com.dhethi.jntuhconnect.presentation.components.StatusChip
 import com.dhethi.jntuhconnect.presentation.components.gradeColor
+import com.dhethi.jntuhconnect.presentation.components.isValidRollNumber
+import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.accentAmber
 
 @Composable
 fun ClassResultScreen(
     viewModel: ClassResultViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    onOpenStudentTab: (roll: String, tab: String) -> Unit
 ) {
     val state = viewModel.state.value
-    val rankedAcademic = state.academic.sortedByDescending { it.cgpaValue() }
+    val academicRanking = rankClassStudents(state.academic)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -86,7 +91,9 @@ fun ClassResultScreen(
                     RollNumberField(
                         value = state.roll,
                         onValueChange = viewModel::updateRoll,
-                        showSearchAction = false
+                        showSearchAction = false,
+                        imeAction = ImeAction.Done,
+                        onSubmit = viewModel::load
                     )
                     Spacer(Modifier.height(Dimens.spaceMd))
                     SegmentedTabs(
@@ -99,6 +106,7 @@ fun ClassResultScreen(
                         text = "Load class",
                         onClick = viewModel::load,
                         loading = state.isLoading,
+                        enabled = isValidRollNumber(state.roll),
                         icon = Icons.Rounded.Groups,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -123,12 +131,31 @@ fun ClassResultScreen(
 
             if (!state.isLoading && state.loaded && state.error.isEmpty()) {
                 if (state.type == CLASS_TAB_ACADEMIC) {
-                    if (rankedAcademic.isEmpty()) {
-                        item { EmptyClass() }
-                    } else {
-                        item { AcademicSummary(rankedAcademic) }
-                        itemsIndexed(rankedAcademic, key = { _, s -> s.details.rollNumber }) { index, student ->
-                            AcademicStudentCard(rank = index + 1, student = student)
+        if (state.academic.isEmpty()) {
+            item { EmptyClass() }
+        } else {
+            item { AcademicSummary(academicRanking) }
+            items(academicRanking.ranked, key = { it.student.details.rollNumber }) { rankedStudent ->
+                AcademicStudentCard(
+                    rank = rankedStudent.rank,
+                    student = rankedStudent.student,
+                    onClick = {
+                        onOpenStudentTab(
+                            rankedStudent.student.details.rollNumber,
+                            Constants.ACADEMIC_RESULTS
+                        )
+                    }
+                )
+            }
+            if (academicRanking.unranked.isNotEmpty()) {
+                item { SectionHeader("Not ranked") }
+                items(academicRanking.unranked, key = { it.details.rollNumber }) { student ->
+                                AcademicStudentCard(
+                                    rank = null,
+                                    student = student,
+                                    onClick = { onOpenStudentTab(student.details.rollNumber, Constants.ACADEMIC_RESULTS) }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -146,7 +173,9 @@ fun ClassResultScreen(
                         }
                     } else {
                         items(withBacklogs, key = { it.details.rollNumber }) { student ->
-                            BacklogStudentCard(student)
+                            BacklogStudentCard(student) {
+                                onOpenStudentTab(student.details.rollNumber, Constants.BACKLOG_RESULTS)
+                            }
                         }
                     }
                 }
@@ -156,25 +185,24 @@ fun ClassResultScreen(
 }
 
 @Composable
-private fun AcademicSummary(students: List<ClassStudent>) {
-    val topper = students.firstOrNull { it.result != null && (it.result.backlogs) == 0 }
-    val clean = students.mapNotNull { it.result }.filter { it.backlogs == 0 }
-        .mapNotNull { it.cgpa.toFloatOrNull() }
-    val avg = if (clean.isNotEmpty()) "%.2f".format(clean.average()) else "—"
+private fun AcademicSummary(ranking: ClassRanking) {
+    val avg = ranking.averageCgpa?.let { "%.2f".format(it) } ?: "—"
+    val topCgpa = ranking.topCgpa?.stripTrailingZeros()?.toPlainString() ?: "—"
+    val topperNames = ranking.toppers.joinToString { it.student.details.name }
 
     AppCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            StatTile(value = students.size.toString(), label = "Students", modifier = Modifier.weight(1f))
+            StatTile(value = ranking.studentCount.toString(), label = "Students", modifier = Modifier.weight(1f))
             Spacer(Modifier.width(Dimens.spaceSm))
             StatTile(value = avg, label = "Avg CGPA", modifier = Modifier.weight(1f))
             Spacer(Modifier.width(Dimens.spaceSm))
             StatTile(
-                value = topper?.result?.cgpa ?: "—",
+                value = topCgpa,
                 label = "Top CGPA",
                 modifier = Modifier.weight(1f)
             )
         }
-        if (topper != null) {
+        if (topperNames.isNotEmpty()) {
             Spacer(Modifier.height(Dimens.spaceMd))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.Icon(
@@ -184,7 +212,7 @@ private fun AcademicSummary(students: List<ClassStudent>) {
                 )
                 Spacer(Modifier.width(Dimens.spaceSm))
                 Text(
-                    "Topper: ${topper.details.name}",
+                    "${if (ranking.toppers.size == 1) "Topper" else "Toppers"}: $topperNames",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -196,12 +224,12 @@ private fun AcademicSummary(students: List<ClassStudent>) {
 }
 
 @Composable
-private fun AcademicStudentCard(rank: Int, student: ClassStudent) {
+private fun AcademicStudentCard(rank: Int?, student: ClassStudent, onClick: () -> Unit) {
     val backlogs = student.result?.backlogs ?: 0
     val cgpa = if (backlogs > 0) "—" else (student.result?.cgpa ?: "—")
-    AppCard {
+    AppCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RankBadge(rank)
+            if (rank != null) RankBadge(rank) else UnrankedBadge()
             Spacer(Modifier.width(Dimens.space))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -236,8 +264,8 @@ private fun AcademicStudentCard(rank: Int, student: ClassStudent) {
 }
 
 @Composable
-private fun BacklogStudentCard(student: ClassBacklogStudent) {
-    AppCard {
+private fun BacklogStudentCard(student: ClassBacklogStudent, onClick: () -> Unit) {
+    AppCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
@@ -262,14 +290,31 @@ private fun BacklogStudentCard(student: ClassBacklogStudent) {
 }
 
 @Composable
+private fun UnrankedBadge() {
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
 private fun RankBadge(rank: Int) {
     val color = when (rank) {
-        1 -> Color(0xFFF59E0B)
+                1 -> accentAmber
         2 -> Color(0xFF94A3B8)
         3 -> Color(0xFFB45309)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    val textColor = if (rank <= 3) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            val textColor = when (rank) {
+                1, 2 -> Color(0xFF171A1F)
+                3 -> Color.White
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
     Box(
         modifier = Modifier
             .size(36.dp)
@@ -293,10 +338,4 @@ private fun EmptyClass() {
         title = "No results yet",
         subtitle = "This class hasn't synced yet. Try again in a little while."
     )
-}
-
-private fun ClassStudent.cgpaValue(): Float {
-    val r = result ?: return -1f
-    if (r.backlogs > 0) return -1f
-    return r.cgpa.toFloatOrNull() ?: -1f
 }

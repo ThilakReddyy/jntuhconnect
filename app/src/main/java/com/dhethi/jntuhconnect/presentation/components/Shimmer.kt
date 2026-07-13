@@ -18,6 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
@@ -80,7 +86,15 @@ fun ShimmerCard(modifier: Modifier = Modifier) {
 /** A vertically stacked set of shimmer cards for full-screen loading. */
 @Composable
 fun ShimmerList(modifier: Modifier = Modifier, count: Int = 4) {
-    Column(modifier = modifier.padding(Dimens.space)) {
+    Column(
+        modifier = modifier
+            .semantics {
+                contentDescription = "Loading content"
+                liveRegion = LiveRegionMode.Polite
+                progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+            }
+            .padding(Dimens.space)
+    ) {
         repeat(count) {
             ShimmerCard()
             Spacer(Modifier.height(Dimens.spaceMd))

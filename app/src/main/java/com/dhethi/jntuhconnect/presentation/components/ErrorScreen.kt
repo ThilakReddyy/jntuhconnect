@@ -21,6 +21,7 @@ fun ErrorScreen(
     val scope = rememberCoroutineScope()
     var internetAvailable by remember { mutableStateOf(true) }
     var serverAvailable by remember { mutableStateOf(true) }
+    var diagnosing by remember { mutableStateOf(true) }
 
     // Diagnose the failure once when the screen appears. The server probe is
     // network I/O, so it must run off the main thread.
@@ -29,9 +30,12 @@ fun ErrorScreen(
         if (internetAvailable) {
             serverAvailable = withContext(Dispatchers.IO) { isServerReachable() }
         }
+        diagnosing = false
     }
 
     when {
+        diagnosing -> ShimmerList(count = 2)
+
         !internetAvailable -> InternetNotAvailable(
             refreshPage = {
                 internetAvailable = isInternetAvailable(context)

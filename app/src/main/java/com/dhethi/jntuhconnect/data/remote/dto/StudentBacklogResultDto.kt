@@ -5,15 +5,22 @@ import com.google.gson.annotations.SerializedName
 
 data class StudentBacklogResultDto(
     @SerializedName("details")
-    val details: DetailsDto,
+    val details: DetailsDto?,
     @SerializedName("results")
-    val results: BacklogResultDto
+    val results: BacklogResultDto?
 )
 
 
-fun StudentBacklogResultDto.toStudentBacklogResult(): StudentBacklogResult {
-    return StudentBacklogResult(
-        details = details.toDetails(),
-        backlogResult = results.toBacklogResults()
-    )
+fun StudentBacklogResultDto.toStudentBacklogResult(): StudentBacklogResult? {
+    val responseDetails = details ?: return null
+    val responseResults = results ?: return null
+    val backlogResult = responseResults.toBacklogResults() ?: return null
+    return try {
+        StudentBacklogResult(
+            details = responseDetails.toDetails(),
+            backlogResult = backlogResult
+        )
+    } catch (_: NullPointerException) {
+        null
+    }
 }

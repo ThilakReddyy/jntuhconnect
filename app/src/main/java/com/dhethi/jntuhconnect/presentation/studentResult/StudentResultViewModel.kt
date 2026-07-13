@@ -16,6 +16,7 @@ import com.dhethi.jntuhconnect.domain.use_case.get_backlog_results.GetBacklogRes
 import com.dhethi.jntuhconnect.domain.use_case.get_credits.GetCreditsUseCase
 import com.dhethi.jntuhconnect.domain.use_case.save_student_details.SaveStudentDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -33,6 +34,10 @@ class StudentResultViewModel @Inject constructor(
 
     private val _state = mutableStateOf(StudentResultState())
     val state: State<StudentResultState> = _state
+    private var academicJob: Job? = null
+    private var allJob: Job? = null
+    private var backlogJob: Job? = null
+    private var creditsJob: Job? = null
 
     init {
         val rollNumber = savedStateHandle.get<String>(Constants.PARAM_ROLL_NUMBER)
@@ -52,22 +57,42 @@ class StudentResultViewModel @Inject constructor(
         ensureTabData(tab)
     }
 
+    fun retryTab(tab: String) {
+        val roll = _state.value.rollNumber
+        when (tab) {
+            Constants.ACADEMIC_RESULTS -> fetchAcademicResult(roll)
+            Constants.ALL_RESULTS -> {
+                _state.value = _state.value.copy(allLoaded = false, allError = "")
+                fetchAllResults(roll)
+            }
+            Constants.BACKLOG_RESULTS -> {
+                _state.value = _state.value.copy(backlogLoaded = false, backlogError = "")
+                fetchBacklogResults(roll)
+            }
+            Constants.CREDIT_RESULTS -> {
+                _state.value = _state.value.copy(creditsLoaded = false, creditsError = "")
+                fetchCredits(roll)
+            }
+        }
+    }
+
     private fun ensureTabData(tab: String) {
         val roll = _state.value.rollNumber
         when (tab) {
             Constants.ALL_RESULTS ->
-                if (_state.value.allResult.isNullOrEmpty()) fetchAllResults(roll)
+                if (!_state.value.allLoaded && !_state.value.allLoading) fetchAllResults(roll)
 
             Constants.BACKLOG_RESULTS ->
-                if (_state.value.backlogResult == null) fetchBacklogResults(roll)
+                if (!_state.value.backlogLoaded && !_state.value.backlogLoading) fetchBacklogResults(roll)
 
             Constants.CREDIT_RESULTS ->
-                if (_state.value.creditsResult == null) fetchCredits(roll)
+                if (!_state.value.creditsLoaded && !_state.value.creditsLoading) fetchCredits(roll)
         }
     }
 
     private fun fetchAcademicResult(rollNumber: String) {
-        getAcademicResultUseCase(rollNumber).onEach { result ->
+        academicJob?.cancel()
+        academicJob = getAcademicResultUseCase(rollNumber).onEach { result ->
             when (result) {
                 is Resource.Loading -> _state.value = _state.value.copy(isLoading = true, error = "")
                 is Resource.Error -> _state.value = _state.value.copy(
@@ -80,8 +105,9 @@ class StudentResultViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         academicResult = data?.academicResult,
                         studentDetails = data?.details,
+                        academicLoaded = true,
                         isLoading = false,
-                        error = ""
+                        error = if (data?.details == null) "No student result was found." else ""
                     )
                     viewModelScope.launch { saveStudentDetails(data?.details, data?.academicResult) }
                 }
@@ -90,7 +116,8 @@ class StudentResultViewModel @Inject constructor(
     }
 
     private fun fetchAllResults(rollNumber: String) {
-        getAllResultsUseCase(rollNumber).onEach { result ->
+        allJob?.cancel()
+        allJob = getAllResultsUseCase(rollNumber).onEach { result ->
             when (result) {
                 is Resource.Loading -> _state.value = _state.value.copy(allLoading = true, allError = "")
                 is Resource.Error -> _state.value =
@@ -99,15 +126,17 @@ class StudentResultViewModel @Inject constructor(
                 is Resource.Success -> _state.value = _state.value.copy(
                     allResult = result.data?.results ?: emptyList(),
                     studentDetails = _state.value.studentDetails ?: result.data?.details,
+                    allLoaded = true,
                     allLoading = false,
-                    allError = ""
+                    allError = if (result.data?.results.isNullOrEmpty()) "No results were found." else ""
                 )
             }
         }.launchIn(viewModelScope)
     }
 
     private fun fetchBacklogResults(rollNumber: String) {
-        getBacklogResultUseCase(rollNumber).onEach { result ->
+        backlogJob?.cancel()
+        backlogJob = getBacklogResultUseCase(rollNumber).onEach { result ->
             when (result) {
                 is Resource.Loading -> _state.value = _state.value.copy(backlogLoading = true, backlogError = "")
                 is Resource.Error -> _state.value =
@@ -116,15 +145,17 @@ class StudentResultViewModel @Inject constructor(
                 is Resource.Success -> _state.value = _state.value.copy(
                     backlogResult = result.data?.backlogResult,
                     studentDetails = _state.value.studentDetails ?: result.data?.details,
+                    backlogLoaded = true,
                     backlogLoading = false,
-                    backlogError = ""
+                    backlogError = if (result.data?.backlogResult == null) "No backlog data was found." else ""
                 )
             }
         }.launchIn(viewModelScope)
     }
 
     private fun fetchCredits(rollNumber: String) {
-        getCreditsUseCase(rollNumber).onEach { result ->
+        creditsJob?.cancel()
+        creditsJob = getCreditsUseCase(rollNumber).onEach { result ->
             when (result) {
                 is Resource.Loading -> _state.value = _state.value.copy(creditsLoading = true, creditsError = "")
                 is Resource.Error -> _state.value =
@@ -132,8 +163,9 @@ class StudentResultViewModel @Inject constructor(
 
                 is Resource.Success -> _state.value = _state.value.copy(
                     creditsResult = result.data,
+                    creditsLoaded = true,
                     creditsLoading = false,
-                    creditsError = ""
+                    creditsError = if (result.data == null) "No credit data was found." else ""
                 )
             }
         }.launchIn(viewModelScope)

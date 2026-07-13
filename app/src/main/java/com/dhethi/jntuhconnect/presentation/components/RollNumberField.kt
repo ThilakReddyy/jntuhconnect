@@ -18,10 +18,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import java.util.Locale
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 import com.dhethi.jntuhconnect.presentation.theme.Shape
 
 const val ROLL_NUMBER_LENGTH = 10
+
+fun normalizeRollNumber(input: String): String = input
+    .filter(Char::isLetterOrDigit)
+    .uppercase(Locale.ROOT)
+    .take(ROLL_NUMBER_LENGTH)
+
+fun isValidRollNumber(value: String): Boolean =
+    value.length == ROLL_NUMBER_LENGTH && value.all(Char::isLetterOrDigit)
 
 /**
  * Premium roll-number input. Auto-uppercases, caps at 10 chars, shows a leading badge
@@ -33,19 +42,23 @@ fun RollNumberField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     label: String = "Roll Number",
-    placeholder: String = "Enter 10-digit roll number",
+    placeholder: String = "Enter 10-character roll number",
     imeAction: ImeAction = ImeAction.Search,
     onSubmit: (() -> Unit)? = null,
-    showSearchAction: Boolean = true
+    onNext: (() -> Unit)? = null,
+    showSearchAction: Boolean = true,
+    error: String? = null
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(it.uppercase().take(ROLL_NUMBER_LENGTH)) },
+        onValueChange = { onValueChange(normalizeRollNumber(it)) },
         modifier = modifier.fillMaxWidth(),
         singleLine = true,
         shape = Shape,
         label = { Text(label) },
         placeholder = { Text(placeholder) },
+        isError = error != null,
+        supportingText = error?.let { message -> { Text(message) } },
         leadingIcon = {
             Icon(Icons.Rounded.Badge, contentDescription = null)
         },
@@ -67,7 +80,8 @@ fun RollNumberField(
         ),
         keyboardActions = KeyboardActions(
             onSearch = { onSubmit?.invoke() },
-            onDone = { onSubmit?.invoke() }
+            onDone = { onSubmit?.invoke() },
+            onNext = { onNext?.invoke() }
         ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,

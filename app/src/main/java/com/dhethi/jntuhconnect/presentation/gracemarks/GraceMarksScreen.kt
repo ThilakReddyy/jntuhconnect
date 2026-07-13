@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.presentation.components.AppCard
@@ -33,6 +34,7 @@ import com.dhethi.jntuhconnect.presentation.components.AppTopBar
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.RollNumberField
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
+import com.dhethi.jntuhconnect.presentation.components.isValidRollNumber
 import com.dhethi.jntuhconnect.presentation.studentResult.components.SemesterCard
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
@@ -77,13 +79,16 @@ fun GraceMarksScreen(
                     RollNumberField(
                         value = state.roll,
                         onValueChange = viewModel::updateRoll,
-                        showSearchAction = false
+                        showSearchAction = false,
+                        imeAction = ImeAction.Done,
+                        onSubmit = viewModel::checkEligibility
                     )
                     Spacer(Modifier.height(Dimens.space))
                     PrimaryButton(
                         text = "Check eligibility",
                         onClick = viewModel::checkEligibility,
                         loading = state.checkLoading,
+                        enabled = isValidRollNumber(state.roll),
                         icon = Icons.Rounded.WorkspacePremium,
                         modifier = Modifier.fillMaxWidth()
                     )

@@ -8,7 +8,9 @@ import com.dhethi.jntuhconnect.common.Resource
 import com.dhethi.jntuhconnect.domain.model.ClassBacklogStudent
 import com.dhethi.jntuhconnect.domain.model.ClassStudent
 import com.dhethi.jntuhconnect.domain.use_case.get_class_result.GetClassResultUseCase
+import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -33,15 +35,25 @@ class ClassResultViewModel @Inject constructor(
 
     private val _state = mutableStateOf(ClassResultState())
     val state: State<ClassResultState> = _state
+    private var loadJob: Job? = null
 
     fun updateRoll(value: String) {
-        _state.value = _state.value.copy(roll = value.uppercase().take(10))
+        val roll = normalizeRollNumber(value)
+        if (roll == _state.value.roll) return
+        loadJob?.cancel()
+        _state.value = ClassResultState(roll = roll, type = _state.value.type)
     }
 
     fun setType(type: String) {
         if (type == _state.value.type) return
-        _state.value = _state.value.copy(type = type)
-        if (_state.value.loaded && _state.value.roll.length == 10) load()
+        loadJob?.cancel()
+        _state.value = _state.value.copy(
+            type = type,
+            isLoading = false,
+            error = "",
+            loaded = false
+        )
+        if (_state.value.roll.length == 10) load()
     }
 
     fun load() {
@@ -54,7 +66,9 @@ class ClassResultViewModel @Inject constructor(
     }
 
     private fun loadAcademic(roll: String) {
-        getClassResultUseCase.academic(roll).onEach { result ->
+        loadJob?.cancel()
+        loadJob = getClassResultUseCase.academic(roll).onEach { result ->
+            if (_state.value.roll != roll || _state.value.type != CLASS_TAB_ACADEMIC) return@onEach
             _state.value = when (result) {
                 is Resource.Loading -> _state.value.copy(isLoading = true, error = "")
                 is Resource.Error -> _state.value.copy(isLoading = false, error = result.message ?: "Failed", loaded = true)
@@ -69,7 +83,9 @@ class ClassResultViewModel @Inject constructor(
     }
 
     private fun loadBacklogs(roll: String) {
-        getClassResultUseCase.backlogs(roll).onEach { result ->
+        loadJob?.cancel()
+        loadJob = getClassResultUseCase.backlogs(roll).onEach { result ->
+            if (_state.value.roll != roll || _state.value.type != CLASS_TAB_BACKLOGS) return@onEach
             _state.value = when (result) {
                 is Resource.Loading -> _state.value.copy(isLoading = true, error = "")
                 is Resource.Error -> _state.value.copy(isLoading = false, error = result.message ?: "Failed", loaded = true)

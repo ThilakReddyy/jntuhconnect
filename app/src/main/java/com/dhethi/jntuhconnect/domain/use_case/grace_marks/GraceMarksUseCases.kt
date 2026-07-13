@@ -22,9 +22,11 @@ class CheckGraceEligibilityUseCase @Inject constructor(
             emit(Resource.Loading())
             emit(Resource.Success(repository.checkGraceEligibility(rollNumber).toGraceEligibility()))
         } catch (e: HttpException) {
-            // 404 (no record) / 406 (no backlogs) carry a friendly message — surface it as
-            // a "not eligible" state rather than a hard error.
-            emit(Resource.Success(GraceEligibility(eligible = false, message = e.friendlyMessage(), backlogResult = null)))
+            if (e.code() == 404 || e.code() == 406) {
+                emit(Resource.Success(GraceEligibility(eligible = false, message = e.friendlyMessage(), backlogResult = null)))
+            } else {
+                emit(Resource.Error(e.friendlyMessage()))
+            }
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection"))
         }

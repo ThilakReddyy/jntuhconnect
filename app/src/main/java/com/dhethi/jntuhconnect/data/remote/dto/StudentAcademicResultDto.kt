@@ -8,12 +8,17 @@ data class StudentAcademicResultDto(
     @SerializedName("details")
     val details: DetailsDto?,
     @SerializedName("results")
-    val results: AcademicResultsDto
+    val results: AcademicResultsDto?
 )
 
-fun StudentAcademicResultDto.toStudentAcademicResult(): StudentAcademicResult {
-    return StudentAcademicResult(
-        details = details?.toDetails(),
-        academicResult = results.toResults()
-    )
+fun StudentAcademicResultDto.toStudentAcademicResult(): StudentAcademicResult? {
+    val responseResults = results ?: return null
+    return try {
+        StudentAcademicResult(
+            details = details?.toDetails(),
+            academicResult = responseResults.toResults()
+        )
+    } catch (_: NullPointerException) {
+        null
+    }
 }

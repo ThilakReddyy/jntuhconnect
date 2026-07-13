@@ -1,7 +1,7 @@
 package com.dhethi.jntuhconnect.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +29,7 @@ fun GradientHero(
     contentPadding: PaddingValues = PaddingValues(Dimens.spaceLg),
     content: @Composable () -> Unit
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -48,7 +48,7 @@ fun GradientCard(
     contentPadding: PaddingValues = PaddingValues(Dimens.spaceLg),
     content: @Composable () -> Unit
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     Box(
         modifier = modifier
             .fillMaxWidth()

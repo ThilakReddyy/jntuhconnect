@@ -35,8 +35,12 @@ fun JsonElement.toContentNode(): ContentNode = when {
 
 private fun JsonElement.toContentDocOrNull(): ContentDoc? {
     if (!isJsonObject) return null
-    val obj = asJsonObject
+    val obj = getAsJsonObject()
     val title = obj.get("title")?.takeIf { it.isJsonPrimitive }?.asString ?: return null
-    val link = obj.get("link")?.takeIf { it.isJsonPrimitive }?.asString ?: ""
+    val link = obj.get("link")
+        ?.takeIf { it.isJsonPrimitive }
+        ?.asString
+        ?.takeIf { it.isNotBlank() }
+        ?: return null
     return ContentDoc(title, link)
 }

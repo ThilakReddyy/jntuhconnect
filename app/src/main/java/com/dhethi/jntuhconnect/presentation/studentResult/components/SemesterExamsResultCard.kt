@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,9 +66,11 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        openCustomTab(context, buildResultUrl(rollNumber, exam))
-                    }
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clickable {
+                            openCustomTab(context, buildResultUrl(rollNumber, exam))
+                        }
                 ) {
                     Text(
                         "Link",

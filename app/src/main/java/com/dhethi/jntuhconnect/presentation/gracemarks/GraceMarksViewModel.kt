@@ -12,9 +12,11 @@ import com.dhethi.jntuhconnect.domain.model.GraceEligibility
 import com.dhethi.jntuhconnect.domain.model.GraceProofResult
 import com.dhethi.jntuhconnect.domain.use_case.grace_marks.CheckGraceEligibilityUseCase
 import com.dhethi.jntuhconnect.domain.use_case.grace_marks.UploadGraceProofUseCase
+import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -46,9 +48,15 @@ class GraceMarksViewModel @Inject constructor(
 
     private val _state = mutableStateOf(GraceMarksState())
     val state: State<GraceMarksState> = _state
+    private var checkJob: Job? = null
+    private var uploadJob: Job? = null
 
     fun updateRoll(value: String) {
-        _state.value = _state.value.copy(roll = value.uppercase().take(10))
+        val roll = normalizeRollNumber(value)
+        if (roll == _state.value.roll) return
+        checkJob?.cancel()
+        uploadJob?.cancel()
+        _state.value = GraceMarksState(roll = roll)
     }
 
     fun checkEligibility() {
@@ -58,7 +66,9 @@ class GraceMarksViewModel @Inject constructor(
             return
         }
         _state.value = _state.value.copy(uploadResult = null, uploadError = "")
-        checkGraceEligibilityUseCase(roll).onEach { result ->
+        checkJob?.cancel()
+        checkJob = checkGraceEligibilityUseCase(roll).onEach { result ->
+            if (_state.value.roll != roll) return@onEach
             _state.value = when (result) {
                 is Resource.Loading -> _state.value.copy(checkLoading = true, checkError = "", eligibility = null)
                 is Resource.Error -> _state.value.copy(checkLoading = false, checkError = result.message ?: "Failed")
@@ -69,21 +79,24 @@ class GraceMarksViewModel @Inject constructor(
 
     fun uploadProof(uri: Uri) {
         val roll = _state.value.roll
-        viewModelScope.launch {
+        uploadJob?.cancel()
+        uploadJob = viewModelScope.launch {
             _state.value = _state.value.copy(uploadLoading = true, uploadError = "", uploadResult = null)
             val prepared = withContext(Dispatchers.IO) { preparePart(uri) }
+            if (_state.value.roll != roll) return@launch
             when (prepared) {
                 is PrepareResult.Error ->
                     _state.value = _state.value.copy(uploadLoading = false, uploadError = prepared.message)
 
                 is PrepareResult.Ok -> {
                     uploadGraceProofUseCase(roll, prepared.part).onEach { result ->
+                        if (_state.value.roll != roll) return@onEach
                         _state.value = when (result) {
                             is Resource.Loading -> _state.value.copy(uploadLoading = true)
                             is Resource.Error -> _state.value.copy(uploadLoading = false, uploadError = result.message ?: "Upload failed")
                             is Resource.Success -> _state.value.copy(uploadLoading = false, uploadResult = result.data, uploadError = "")
                         }
-                    }.launchIn(viewModelScope)
+                    }.collect { }
                 }
             }
         }
@@ -101,10 +114,22 @@ class GraceMarksViewModel @Inject constructor(
             if (type !in ALLOWED_TYPES) {
                 return PrepareResult.Error("Only PDF or image (PNG/JPEG) files are accepted.")
             }
-            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: return PrepareResult.Error("Couldn't read the selected file.")
+            val bytes = resolver.openInputStream(uri)?.use { input ->
+                val output = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var total = 0
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    total += count
+                    if (total > MAX_BYTES) {
+                        return PrepareResult.Error("File exceeds the 5MB limit.")
+                    }
+                    output.write(buffer, 0, count)
+                }
+                output.toByteArray()
+            } ?: return PrepareResult.Error("Couldn't read the selected file.")
             if (bytes.isEmpty()) return PrepareResult.Error("The selected file is empty.")
-            if (bytes.size > MAX_BYTES) return PrepareResult.Error("File exceeds the 5MB limit.")
 
             val name = queryFileName(uri) ?: "proof"
             val body = bytes.toRequestBody(type.toMediaTypeOrNull())

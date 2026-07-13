@@ -1,6 +1,8 @@
 package com.dhethi.jntuhconnect.presentation.updates
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,7 +70,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val categories = listOf(Constants.ALL_UPDATES, Constants.RESULTS_UPDATES)
+private val categories = Constants.UPDATES_TABS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +83,18 @@ fun UpdatesScreen(
     val listState = rememberLazyListState()
     var showFilters by remember { mutableStateOf(false) }
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) }
+
+    LaunchedEffect(
+        state.currentTab,
+        state.degreeCode,
+        state.regulation,
+        state.year,
+        state.titleQuery
+    ) {
+        if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
+            listState.scrollToItem(0)
+        }
+    }
 
     if (showFilters) {
         UpdatesFilterSheet(
@@ -128,7 +142,7 @@ fun UpdatesScreen(
             )
             Spacer(Modifier.height(Dimens.spaceSm))
 
-            if (state.error.isNotEmpty()) {
+            if (state.error.isNotEmpty() && state.updates.isEmpty()) {
                 EmptyState(
                     icon = Icons.Rounded.NotificationsNone,
                     title = "Couldn't load updates",
@@ -150,6 +164,25 @@ fun UpdatesScreen(
                         isNew = update.releaseDate == today,
                         onClick = { openCustomTab(context, update.link) }
                     )
+                }
+                if (state.error.isNotEmpty() && state.updates.isNotEmpty()) {
+                    item {
+                        AppCard {
+                            Text(
+                                "More updates could not be loaded",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(Modifier.height(Dimens.spaceXs))
+                            Text(
+                                state.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(Dimens.spaceMd))
+                            TonalButton("Try again", onClick = viewModel::retry)
+                        }
+                    }
                 }
                 if (state.isLoading) {
                     item {
@@ -262,6 +295,7 @@ private fun UpdatesFilterSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(horizontal = Dimens.spaceLg)
                 .padding(bottom = Dimens.spaceLg)
@@ -309,7 +343,10 @@ private fun UpdatesFilterSheet(
 private fun FilterGroup(title: String, content: @Composable () -> Unit) {
     Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(Dimens.spaceSm))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) { content() }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
+        verticalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
+    ) { content() }
     Spacer(Modifier.height(Dimens.space))
 }
 

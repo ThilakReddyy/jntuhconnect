@@ -1,10 +1,8 @@
 package com.dhethi.jntuhconnect.presentation.home
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,11 +41,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.R
 import com.dhethi.jntuhconnect.presentation.Screen
-import com.dhethi.jntuhconnect.presentation.components.ROLL_NUMBER_LENGTH
+import com.dhethi.jntuhconnect.presentation.components.isValidRollNumber
 import com.dhethi.jntuhconnect.presentation.components.RollInputSheet
 import com.dhethi.jntuhconnect.presentation.components.SectionHeader
 import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
@@ -56,6 +55,7 @@ import com.dhethi.jntuhconnect.presentation.explore.ToolAction
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.explore.homeQuickTools
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 import com.dhethi.jntuhconnect.presentation.theme.brandGradientStatusBar
 
@@ -71,6 +71,13 @@ fun HomeScreen(
     val context = LocalContext.current
     val keyboard = LocalSoftwareKeyboardController.current
     var roll by rememberSaveable { mutableStateOf("") }
+    var searchAttempted by rememberSaveable { mutableStateOf(false) }
+    val rollError = when {
+        !searchAttempted -> null
+        roll.isBlank() -> stringResource(R.string.error_roll_empty)
+        !isValidRollNumber(roll) -> stringResource(R.string.error_roll_length)
+        else -> null
+    }
 
     // A roll-input sheet used when a quick tool needs a roll number.
     var pendingTab by remember { mutableStateOf<String?>(null) }
@@ -86,17 +93,10 @@ fun HomeScreen(
     }
 
     fun submitSearch() {
-        when {
-            roll.isBlank() ->
-                Toast.makeText(context, R.string.error_roll_empty, Toast.LENGTH_SHORT).show()
-
-            roll.length != ROLL_NUMBER_LENGTH ->
-                Toast.makeText(context, R.string.error_roll_length, Toast.LENGTH_SHORT).show()
-
-            else -> {
-                keyboard?.hide()
-                onOpenStudent(roll)
-            }
+        searchAttempted = true
+        if (isValidRollNumber(roll)) {
+            keyboard?.hide()
+            onOpenStudent(roll)
         }
     }
 
@@ -108,7 +108,7 @@ fun HomeScreen(
         }
     }
 
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     val listState = rememberLazyListState()
     val heroScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex >= 1 } }
 
@@ -122,7 +122,8 @@ fun HomeScreen(
             HomeHero(
                 rollValue = roll,
                 onRollChange = { roll = it },
-                onSubmit = { submitSearch() }
+                onSubmit = { submitSearch() },
+                error = rollError
             )
         }
 
@@ -202,9 +203,10 @@ fun HomeScreen(
 private fun HomeHero(
     rollValue: String,
     onRollChange: (String) -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
+    error: String?
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalJntuhDarkTheme.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,6 +251,14 @@ private fun HomeHero(
                 onValueChange = onRollChange,
                 onSubmit = onSubmit
             )
+            if (error != null) {
+                Spacer(Modifier.height(Dimens.spaceXs))
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color(0xFFFFDAD6)
+                )
+            }
         }
     }
 }

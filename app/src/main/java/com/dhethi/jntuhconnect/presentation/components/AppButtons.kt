@@ -53,6 +53,14 @@ fun PrimaryButton(
         enabled = enabled && !loading,
         shape = Shape,
         interactionSource = interaction,
+        colors = if (loading) {
+            ButtonDefaults.buttonColors(
+                disabledContainerColor = MaterialTheme.colorScheme.primary,
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            ButtonDefaults.buttonColors()
+        },
         contentPadding = PaddingValues(horizontal = Dimens.spaceXl)
     ) {
         if (loading) {
@@ -61,6 +69,8 @@ fun PrimaryButton(
                 strokeWidth = 2.dp,
                 color = MaterialTheme.colorScheme.onPrimary
             )
+            Spacer(Modifier.width(Dimens.spaceSm))
+            Text(text, style = MaterialTheme.typography.labelLarge)
         } else {
             if (icon != null) {
                 Icon(icon, contentDescription = null, modifier = Modifier.size(Dimens.iconSm))

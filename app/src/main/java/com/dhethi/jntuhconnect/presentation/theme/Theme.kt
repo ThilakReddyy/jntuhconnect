@@ -6,7 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -76,6 +78,8 @@ private val DarkColorScheme = darkColorScheme(
     scrim = md_dark_scrim
 )
 
+val LocalJntuhDarkTheme = staticCompositionLocalOf { false }
+
 /**
  * App theme. The brand color is intentional, so dynamic color is intentionally off.
  * [themeMode] lets the user force light/dark from Profile; SYSTEM follows the OS.
@@ -104,9 +108,11 @@ fun JntuhConnectTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalJntuhDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

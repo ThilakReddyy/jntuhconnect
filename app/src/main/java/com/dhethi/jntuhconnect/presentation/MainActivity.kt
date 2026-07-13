@@ -1,15 +1,12 @@
 package com.dhethi.jntuhconnect.presentation
 
-import android.Manifest
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -17,14 +14,17 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.dhethi.jntuhconnect.presentation.components.CustomBottomBar
+import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.content.CalendarsScreen
 import com.dhethi.jntuhconnect.presentation.content.CareersScreen
 import com.dhethi.jntuhconnect.presentation.content.ChannelsScreen
@@ -55,7 +56,7 @@ import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
 import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
 import com.dhethi.jntuhconnect.presentation.update.InAppUpdateHandler
 import com.dhethi.jntuhconnect.presentation.updates.UpdatesScreen
-import com.google.firebase.messaging.FirebaseMessaging
+import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -65,23 +66,35 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        fetchFcmToken()
         setContent {
             val appViewModel: AppViewModel = hiltViewModel()
             val themeMode by appViewModel.themeMode.collectAsState()
-            RequestNotificationPermission()
             JntuhConnectTheme(themeMode = themeMode) {
                 AppNavigation()
             }
         }
+        handleNotificationIntent(intent)
     }
 
-    private fun fetchFcmToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM_TOKEN", "Fetching FCM token failed", task.exception)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        val link = intent
+            ?.let {
+                it.getStringExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK)
+                    ?: it.getStringExtra(NOTIFICATION_DATA_LINK)
             }
-        }
+            ?.also { intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK) }
+            ?: return
+        openCustomTab(this, link)
+    }
+
+    private companion object {
+        const val NOTIFICATION_DATA_LINK = "link"
     }
 }
 
@@ -99,7 +112,7 @@ private fun AppNavigation() {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (isTopLevel) {
@@ -115,7 +128,7 @@ private fun AppNavigation() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(bottom = innerPadding.calculateBottomPadding())
+                .padding(innerPadding)
         )
     }
 }
@@ -154,7 +167,6 @@ private fun AppNavHost(
         }
         composable(Screen.Profile.route) {
             ProfileScreen(
-                onOpenStudent = { roll -> navController.navigate("${Screen.StudentResults.route}/$roll") },
                 onOpenRoute = { route -> navController.navigate(route) }
             )
         }
@@ -174,10 +186,18 @@ private fun AppNavHost(
             StudentResultScreen(navigateBack = { navController.popBackStack() })
         }
         composable(Screen.ResultContrast.route) {
-            ResultContrastScreen(navigateBack = { navController.popBackStack() })
+            ResultContrastScreen(
+                navigateBack = { navController.popBackStack() },
+                onOpenStudent = { roll -> navController.navigate("${Screen.StudentResults.route}/$roll") }
+            )
         }
         composable(Screen.ClassResult.route) {
-            ClassResultScreen(navigateBack = { navController.popBackStack() })
+            ClassResultScreen(
+                navigateBack = { navController.popBackStack() },
+                onOpenStudentTab = { roll, tab ->
+                    navController.navigate("${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}")
+                }
+            )
         }
         composable(Screen.GraceMarks.route) {
             GraceMarksScreen(navigateBack = { navController.popBackStack() })
@@ -208,16 +228,5 @@ fun NavController.navigateSingleTop(route: String) {
         popUpTo(graph.startDestinationId) { saveState = true }
         launchSingleTop = true
         restoreState = true
-    }
-}
-
-@Composable
-fun RequestNotificationPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-            onResult = { granted -> Log.d("FCM_PERMISSION", "Granted: $granted") }
-        )
-        LaunchedEffect(Unit) { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 }
