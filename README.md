@@ -1,7 +1,7 @@
 # 📚 JNTUH Connect
 
 <p align="center">
-  <img src="app/src/main/res/mipmap-hdpi/ic_launcher.webp" alt="JNTUH Connect Logo" width="100"/>
+  <img src="app/src/main/res/ic_launcher-web.png" alt="JNTUH Connect Logo" width="100"/>
 </p>
 
 <p align="center">
