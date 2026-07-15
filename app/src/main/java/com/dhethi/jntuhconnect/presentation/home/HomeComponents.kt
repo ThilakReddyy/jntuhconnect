@@ -12,11 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -37,19 +40,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dhethi.jntuhconnect.data.local.entities.StudentDetailsEntity
 import com.dhethi.jntuhconnect.domain.model.LatestNotification
+import com.dhethi.jntuhconnect.domain.model.RecentDocument
 import com.dhethi.jntuhconnect.presentation.components.GradeDot
 import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
-import com.dhethi.jntuhconnect.presentation.components.StatusChip
-import com.dhethi.jntuhconnect.presentation.components.gradeColor
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
-import com.dhethi.jntuhconnect.presentation.theme.Shape
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
 import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
-import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 
-/** White search bar that sits on the gradient hero. */
+/** Layered search control matching the dark academic-record hero. */
 @Composable
 fun HeroSearchBar(
     value: String,
@@ -57,24 +57,42 @@ fun HeroSearchBar(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dark = LocalJntuhDarkTheme.current
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = Shape,
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = Dimens.elevation
+        modifier = modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        shape = ShapeLg,
+        color = if (dark) Color(0xFF292C31) else Color(0xFF555D66),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (dark) Color(0xFF454950) else Color(0xFF737B84)
+        )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             TextField(
                 value = value,
                 onValueChange = { onValueChange(normalizeRollNumber(it)) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(ShapeMd),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.titleMedium,
                 placeholder = {
                     Text(
                         "Enter roll number",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFFBFC2C7)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Rounded.Search,
+                        contentDescription = null,
+                        tint = Color(0xFFBFC2C7)
                     )
                 },
                 keyboardOptions = KeyboardOptions(
@@ -83,36 +101,36 @@ fun HeroSearchBar(
                 ),
                 keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
+                    unfocusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 )
             )
-            val dark = LocalJntuhDarkTheme.current
             Box(
                 modifier = Modifier
-                    .padding(6.dp)
-                    .size(48.dp)
+                    .padding(start = 8.dp)
+                    .size(56.dp)
                     .clip(ShapeMd)
-                    .background(brandGradient(dark))
+                    .background(Color.White)
                     .clickable(onClick = onSubmit),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Rounded.Search,
+                    Icons.AutoMirrored.Rounded.ArrowForward,
                     contentDescription = "Search",
-                    tint = Color.White
+                    tint = Color.Black,
+                    modifier = Modifier.size(27.dp)
                 )
             }
         }
     }
 }
 
-/** Compact quick-tool card for the Home "Quick tools" row. */
+/** Large quick-tool tile used in the two-column Home grid. */
 @Composable
 fun QuickToolCard(
     tool: ToolItem,
@@ -121,35 +139,118 @@ fun QuickToolCard(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier.width(150.dp),
+        modifier = modifier.height(152.dp),
         shape = ShapeLg,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = Dimens.elevationSm
+        color = if (LocalJntuhDarkTheme.current) Color(0xFF1C1C1E) else Color.White,
+        shadowElevation = 0.dp
     ) {
-        Column(modifier = Modifier.padding(Dimens.space)) {
+        Column(
+            modifier = Modifier.padding(Dimens.space),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(ShapeMd)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .background(
+                        if (LocalJntuhDarkTheme.current) Color(0xFF272729)
+                        else Color(0xFFF2F2F3)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(tool.icon, contentDescription = null, tint = tool.accent, modifier = Modifier.size(22.dp))
+                Icon(tool.icon, contentDescription = null, tint = tool.accent, modifier = Modifier.size(25.dp))
             }
-            Spacer(Modifier.height(Dimens.spaceSm))
-            Text(
-                tool.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                tool.subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+            Column {
+                Text(
+                    tool.homeTitle(),
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Default),
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    tool.homeSubtitle(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+private fun ToolItem.homeTitle() = when (title) {
+    "Credits Checker" -> "Credits"
+    "Result Contrast" -> "Compare results"
+    else -> title
+}
+
+private fun ToolItem.homeSubtitle() = when (title) {
+    "Credits Checker" -> "Track progress"
+    "Class Result" -> "View class rankings"
+    "Result Contrast" -> "Compare students"
+    "Grace Marks" -> "Check eligibility"
+    else -> subtitle
+}
+
+@Composable
+fun RecentDocumentCard(
+    document: RecentDocument,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = ShapeLg,
+        color = if (LocalJntuhDarkTheme.current) Color(0xFF1C1C1E) else Color.White,
+        shadowElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(Dimens.spaceMd),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(ShapeMd)
+                    .background(
+                        if (LocalJntuhDarkTheme.current) Color(0xFF29292B)
+                        else Color(0xFFF1F1F2)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (document.type == RecentDocument.CALENDAR) {
+                        Icons.Rounded.CalendarMonth
+                    } else {
+                        Icons.Rounded.MenuBook
+                    },
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(25.dp)
+                )
+            }
+            Spacer(Modifier.width(Dimens.spaceMd))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = document.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Default),
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = if (document.type == RecentDocument.CALENDAR) "Academic calendar" else "Syllabus",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -162,67 +263,50 @@ fun RecentStudentCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dark = LocalJntuhDarkTheme.current
-    val cgpa = if (student.backlogs > 0) "—" else student.cgpa
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = ShapeLg,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = Dimens.elevationSm
+        color = if (LocalJntuhDarkTheme.current) Color(0xFF1C1C1E) else Color.White,
+        shadowElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.padding(Dimens.space),
+            modifier = Modifier.padding(Dimens.spaceMd),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(Dimens.avatar)
-                    .clip(CircleShape)
-                    .background(brandGradient(dark)),
+                    .size(48.dp)
+                    .clip(ShapeMd)
+                    .background(
+                        if (LocalJntuhDarkTheme.current) Color(0xFF29292B)
+                        else Color(0xFFF1F1F2)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = student.name.initials(),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    imageVector = Icons.Rounded.School,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(25.dp)
                 )
             }
-            Spacer(Modifier.width(Dimens.space))
+            Spacer(Modifier.width(Dimens.spaceMd))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     student.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Default),
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    student.rollNumber,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    student.branch,
-                    style = MaterialTheme.typography.bodySmall,
+                    "${student.rollNumber}  ·  ${student.branch}",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(Dimens.spaceSm))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    StatusChip(
-                        text = "CGPA $cgpa",
-                        color = if (student.backlogs > 0) MaterialTheme.colorScheme.error
-                        else gradeColor("A")
-                    )
-                    Spacer(Modifier.width(Dimens.spaceSm))
-                    StatusChip(
-                        text = if (student.backlogs > 0) "${student.backlogs} backlog(s)" else "No backlogs",
-                        color = if (student.backlogs > 0) MaterialTheme.colorScheme.error else gradeColor("O")
-                    )
-                }
             }
             Icon(
                 Icons.Rounded.ChevronRight,

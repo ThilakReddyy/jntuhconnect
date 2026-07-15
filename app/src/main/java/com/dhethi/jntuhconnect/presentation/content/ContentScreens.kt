@@ -146,6 +146,7 @@ fun CalendarsScreen(
         title = "Academic Calendars",
         state = viewModel.state.value,
         onRetry = viewModel::load,
+        onDocumentOpened = viewModel::recordOpened,
         navigateBack = navigateBack,
         folderIcon = Icons.Rounded.CalendarMonth,
         accent = MaterialTheme.colorScheme.secondary,
@@ -163,6 +164,7 @@ fun SyllabusScreen(
         title = "Syllabus",
         state = viewModel.state.value,
         onRetry = viewModel::load,
+        onDocumentOpened = viewModel::recordOpened,
         navigateBack = navigateBack,
         folderIcon = Icons.Rounded.MenuBook,
         accent = MaterialTheme.colorScheme.tertiary,
@@ -191,6 +193,7 @@ private fun ContentTreeScreen(
     title: String,
     state: ContentTreeState,
     onRetry: () -> Unit,
+    onDocumentOpened: (ContentDoc) -> Unit,
     navigateBack: () -> Unit,
     folderIcon: ImageVector,
     accent: Color,
@@ -275,6 +278,7 @@ private fun ContentTreeScreen(
                             // Some JNTUH PDF links contain literal spaces; encode them so the
                             // custom tab can launch (a no-op for already-encoded URLs).
                             DocumentRow(doc = doc, accent = accent) {
+                                onDocumentOpened(doc)
                                 openCustomTab(context, doc.link.replace(" ", "%20"))
                             }
                         }

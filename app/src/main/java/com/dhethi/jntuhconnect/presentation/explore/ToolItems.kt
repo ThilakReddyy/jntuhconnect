@@ -127,8 +127,8 @@ val resourceTools = listOf(
 
 /** Quick tools surfaced on the Home screen. */
 val homeQuickTools = listOf(
-    analysisTools[0], // Result Contrast
+    resultTools[3],   // Credits Checker
     analysisTools[1], // Class Result
-    analysisTools[2], // Grace Marks
-    resultTools[3]    // Credits Checker
+    resourceTools[1], // Calendars
+    resourceTools[2]  // Syllabus
 )

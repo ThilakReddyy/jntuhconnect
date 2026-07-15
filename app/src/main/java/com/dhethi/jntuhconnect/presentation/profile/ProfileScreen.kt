@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -36,11 +38,13 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -51,6 +55,7 @@ import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.presentation.Screen
 import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.SectionHeader
+import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
@@ -103,12 +108,20 @@ fun ProfileScreen(
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }.getOrNull() ?: ""
     }
+    val listState = rememberLazyListState()
+    val isScrolled by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
+    }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = Dimens.spaceXxl)
-    ) {
-        item { ProfileHeader() }
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = Dimens.spaceXxl)
+        ) {
+            item { ProfileHeader() }
 
         // Appearance
         item {
@@ -177,22 +190,27 @@ fun ProfileScreen(
                 modifier = Modifier.padding(horizontal = Dimens.space, vertical = Dimens.spaceMd)
             )
         }
-        item {
-            AppCard(
-                modifier = Modifier.padding(horizontal = Dimens.space),
-                contentPadding = PaddingValues(vertical = Dimens.spaceXs)
-            ) {
-                LinkRow(
-                    icon = Icons.Rounded.Share,
-                    title = "Share JNTUH Connect",
-                    subtitle = "Help classmates find results and resources",
-                    action = LinkAction.SHARE
+            item {
+                AppCard(
+                    modifier = Modifier.padding(horizontal = Dimens.space),
+                    contentPadding = PaddingValues(vertical = Dimens.spaceXs)
                 ) {
-                    shareApp(context)
+                    LinkRow(
+                        icon = Icons.Rounded.Share,
+                        title = "Share JNTUH Connect",
+                        subtitle = "Help classmates find results and resources",
+                        action = LinkAction.SHARE
+                    ) {
+                        shareApp(context)
+                    }
+                    SettingsDivider()
+                    VersionRow(version)
                 }
-                SettingsDivider()
-                VersionRow(version)
             }
+        }
+
+        if (isScrolled) {
+            StatusBarScrim(brush = SolidColor(MaterialTheme.colorScheme.background))
         }
     }
 }

@@ -26,7 +26,7 @@ class AppNavigationTest {
 
     @Test
     fun topLevelNavigationAndHomeValidationWork() {
-        compose.onNodeWithText("Check your results").assertIsDisplayed()
+        compose.onNodeWithText("Your academic record,\nmade simple.").assertIsDisplayed()
         compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithText("Roll number cannot be empty").assertIsDisplayed()
 
@@ -38,7 +38,7 @@ class AppNavigationTest {
         compose.onNodeWithText("Dark").performClick()
         compose.onNodeWithText("System").performClick()
         compose.onNodeWithText("Home").performClick()
-        compose.onNodeWithText("Check your results").assertIsDisplayed()
+        compose.onNodeWithText("Your academic record,\nmade simple.").assertIsDisplayed()
     }
 
     @Test
