@@ -2,10 +2,9 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android") // Hilt plugin
-    kotlin("kapt")
     id("com.google.gms.google-services")
 }
 
@@ -66,6 +65,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
 
             // Only sign with the release key when a keystore is provided (CI).
             if (System.getenv("KEYSTORE_FILE") != null) {
@@ -84,9 +84,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -119,16 +116,16 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("androidx.browser:browser:1.9.0")
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
+    implementation("com.google.dagger:hilt-android:2.59.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.59.2")
 
 // (optional) For Hilt with instrumentation tests
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.59.2")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.59.2")
 
 // (optional) For local unit tests
-    testImplementation("com.google.dagger:hilt-android-testing:2.57.2")
-    kaptTest("com.google.dagger:hilt-android-compiler:2.57.2")
+    testImplementation("com.google.dagger:hilt-android-testing:2.59.2")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.59.2")
 
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.room:room-runtime:2.8.1")
