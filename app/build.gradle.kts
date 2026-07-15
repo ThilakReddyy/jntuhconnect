@@ -133,7 +133,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.1")
 
 
-    implementation("com.google.firebase:firebase-messaging:24.0.0")
+    // Keep all Firebase libraries on mutually compatible versions.
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Google Play In-App Updates
     implementation(libs.app.update)
