@@ -53,7 +53,7 @@ jobs:
           serviceAccountJson: ${{ runner.temp }}/play-service-account.json
           packageName: com.dhethi.jntuhconnect
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
-          track: internal
+          tracks: internal
           status: completed
 
       - name: Sync version badge in README
