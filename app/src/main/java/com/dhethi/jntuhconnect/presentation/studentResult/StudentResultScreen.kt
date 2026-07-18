@@ -1,24 +1,19 @@
 package com.dhethi.jntuhconnect.presentation.studentResult
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,13 +24,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.presentation.components.AppCard
@@ -43,8 +33,6 @@ import com.dhethi.jntuhconnect.presentation.components.ErrorScreen
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.SegmentedTabs
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
-import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
-import com.dhethi.jntuhconnect.presentation.theme.brandGradientStatusBar
 import com.dhethi.jntuhconnect.presentation.studentResult.components.AcademicResults
 import com.dhethi.jntuhconnect.presentation.studentResult.components.AllResults
 import com.dhethi.jntuhconnect.presentation.studentResult.components.BacklogsResults
@@ -58,6 +46,18 @@ fun StudentResultScreen(
     viewModel: StudentResultViewModel = hiltViewModel(),
     navigateBack: () -> Unit
 ) {
+    StudentResultContent(
+        viewModel = viewModel,
+        navigateBack = navigateBack
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun StudentResultContent(
+    viewModel: StudentResultViewModel,
+    navigateBack: () -> Unit
+) {
     val state = viewModel.state.value
 
     Column(
@@ -68,25 +68,20 @@ fun StudentResultScreen(
         when {
             state.studentDetails != null -> {
                 val details = state.studentDetails
-                val dark = LocalJntuhDarkTheme.current
                 val listState = rememberLazyListState()
-                // Once the hero (item 0) scrolls off, the tabs pin to the top and would
-                // sit under the system status bar — inset them by the status bar height then.
-                val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                val heroPinned by remember {
-                    derivedStateOf { listState.firstVisibleItemIndex >= 1 }
-                }
-                val headerTopInset by animateDpAsState(
-                    targetValue = if (heroPinned) statusBarTop else 0.dp,
-                    label = "headerTopInset"
-                )
+                BackHeader(navigateBack)
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                         item {
                             StudentResultHero(
                                 details = details,
                                 academic = state.academicResult,
-                                onBack = navigateBack
+                                modifier = Modifier.padding(
+                                    start = Dimens.space,
+                                    end = Dimens.space,
+                                    top = Dimens.spaceSm,
+                                    bottom = Dimens.spaceMd
+                                )
                             )
                         }
 
@@ -95,7 +90,6 @@ fun StudentResultScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(MaterialTheme.colorScheme.background)
-                                    .padding(top = headerTopInset)
                                     .padding(horizontal = Dimens.space, vertical = Dimens.spaceSm)
                             ) {
                                 SegmentedTabs(
@@ -119,15 +113,6 @@ fun StudentResultScreen(
                         item { Spacer(Modifier.height(Dimens.spaceXxl)) }
 
                     }
-                    // Keep scrolling content from bleeding under the system clock: brand
-                    // gradient while the hero is at rest, solid background once it scrolls off.
-                    StatusBarScrim(
-                        brush = if (heroPinned) {
-                            SolidColor(MaterialTheme.colorScheme.background)
-                        } else {
-                            brandGradientStatusBar(dark)
-                        }
-                    )
                 }
             }
 

@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.School
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dhethi.jntuhconnect.domain.model.AcademicResult
@@ -26,8 +28,17 @@ fun AcademicResults(studentResult: AcademicResult?) {
         modifier = Modifier.padding(horizontal = Dimens.space, vertical = Dimens.spaceSm),
         verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
     ) {
-        result.semesters.forEach { semester ->
-            SemesterCard(semester = semester, showSgpa = true)
+        Text(
+            text = "Your consolidated best attempt and semester performance.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        result.semesters.forEachIndexed { index, semester ->
+            SemesterCard(
+                semester = semester,
+                showSgpa = true,
+                initiallyExpanded = index == 0
+            )
         }
     }
 }

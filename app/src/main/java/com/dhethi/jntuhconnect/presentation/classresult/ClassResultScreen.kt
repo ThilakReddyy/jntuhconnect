@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material3.MaterialTheme
@@ -135,6 +136,7 @@ fun ClassResultScreen(
             item { EmptyClass() }
         } else {
             item { AcademicSummary(academicRanking) }
+            item { PartialDatabaseNotice() }
             items(academicRanking.ranked, key = { it.student.details.rollNumber }) { rankedStudent ->
                 AcademicStudentCard(
                     rank = rankedStudent.rank,
@@ -172,6 +174,7 @@ fun ClassResultScreen(
                             )
                         }
                     } else {
+                        item { PartialDatabaseNotice() }
                         items(withBacklogs, key = { it.details.rollNumber }) { student ->
                             BacklogStudentCard(student) {
                                 onOpenStudentTab(student.details.rollNumber, Constants.BACKLOG_RESULTS)
@@ -181,6 +184,29 @@ fun ClassResultScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PartialDatabaseNotice() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimens.spaceSm, vertical = Dimens.spaceXs),
+        verticalAlignment = Alignment.Top
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(Dimens.iconSm)
+        )
+        Spacer(Modifier.width(Dimens.spaceMd))
+        Text(
+            text = "Partial database snapshot — unsynced students may be missing.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

@@ -1,7 +1,6 @@
 package com.dhethi.jntuhconnect.presentation.studentResult.components
 
 import androidx.compose.foundation.background
-import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +25,8 @@ import com.dhethi.jntuhconnect.domain.model.Details
 import com.dhethi.jntuhconnect.presentation.components.CgpaRing
 import com.dhethi.jntuhconnect.presentation.components.StatTile
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
 import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 
 /** Gradient hero for the student result screen: identity + CGPA ring + key stats. */
@@ -39,7 +34,6 @@ import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 fun StudentResultHero(
     details: Details,
     academic: AcademicResult?,
-    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val dark = LocalJntuhDarkTheme.current
@@ -54,34 +48,15 @@ fun StudentResultHero(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = Dimens.radiusXl, bottomEnd = Dimens.radiusXl))
+            .clip(ShapeLg)
             .background(brandGradient(dark))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-
                 .padding(horizontal = Dimens.spaceLg)
-                .padding(bottom = Dimens.spaceLg)
+                .padding(vertical = Dimens.spaceLg)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Text(
-                    "Student Result",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-            }
-
-            Spacer(Modifier.height(Dimens.spaceSm))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(

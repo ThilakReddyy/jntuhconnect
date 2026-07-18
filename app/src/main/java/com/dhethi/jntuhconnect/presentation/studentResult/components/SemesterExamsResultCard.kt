@@ -35,11 +35,22 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
     val context = LocalContext.current
 
     AppCard {
-        Text(
-            "Semester ${semesterResult.semester}",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Semester ${semesterResult.semester}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                "${semesterResult.exams.size} ${if (semesterResult.exams.size == 1) "attempt" else "attempts"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         semesterResult.exams.forEach { exam ->
             Spacer(Modifier.height(Dimens.spaceMd))
             Row(
@@ -47,7 +58,7 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(Dimens.radiusSm))
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .padding(horizontal = Dimens.spaceMd, vertical = Dimens.spaceSm),
+                    .padding(horizontal = Dimens.spaceMd),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -72,18 +83,18 @@ fun SemesterExamsResultCard(semesterResult: SemesterResult, rollNumber: String) 
                             openCustomTab(context, buildResultUrl(rollNumber, exam))
                         }
                 ) {
-                    Text(
-                        "Link",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.width(2.dp))
                     Icon(
                         Icons.AutoMirrored.Rounded.OpenInNew,
                         contentDescription = "Open official result",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.width(16.dp)
+                    )
+                    Spacer(Modifier.width(Dimens.spaceXs))
+                    Text(
+                        "Official",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

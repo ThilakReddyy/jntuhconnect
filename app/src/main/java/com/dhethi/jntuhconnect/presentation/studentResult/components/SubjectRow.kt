@@ -42,7 +42,7 @@ fun SubjectRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = subject.subjectCode,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -50,8 +50,9 @@ fun SubjectRow(
             )
             Text(
                 text = subject.subjectName,
-                style = MaterialTheme.typography.bodySmall,
-                color = muted,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
