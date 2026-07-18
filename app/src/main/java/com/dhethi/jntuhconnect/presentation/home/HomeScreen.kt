@@ -330,7 +330,7 @@ private fun HomeHero(
                 )
             }
 
-            Spacer(Modifier.height(42.dp))
+            Spacer(Modifier.height(32.dp))
             Text(
                 "Your academic record,\nmade simple.",
                 color = Color.White,

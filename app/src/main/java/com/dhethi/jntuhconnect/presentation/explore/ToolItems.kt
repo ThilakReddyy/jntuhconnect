@@ -11,7 +11,6 @@ import androidx.compose.material.icons.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Quiz
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material.icons.rounded.WorkOutline
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dhethi.jntuhconnect.common.Constants
-import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.presentation.Screen
 
 /** What happens when a tool is tapped. */
@@ -110,10 +108,6 @@ val resourceTools = listOf(
     ToolItem(
         "Jobs & Careers", "Opportunities for students",
         Icons.Rounded.WorkOutline, cAmber, ToolAction.Route(Screen.Careers.route)
-    ),
-    ToolItem(
-        "Important Questions", "Exam prep question bank",
-        Icons.Rounded.Quiz, cViolet, ToolAction.External(ContentData.IMP_QUESTIONS_URL)
     ),
     ToolItem(
         "Channels", "Telegram, WhatsApp & more",
