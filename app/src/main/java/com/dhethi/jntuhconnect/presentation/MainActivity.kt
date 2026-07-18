@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
 import com.dhethi.jntuhconnect.presentation.update.InAppUpdateHandler
 import com.dhethi.jntuhconnect.presentation.updates.UpdatesScreen
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
+import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -106,6 +108,17 @@ private fun AppNavigation() {
     val currentRoute = navBackStackEntry?.destination?.route
     val isTopLevel = currentRoute in Screen.topLevelRoutes
     val snackbarHostState = remember { SnackbarHostState() }
+    val analytics = remember { FirebaseAnalytics.getInstance(navController.context) }
+
+    LaunchedEffect(currentRoute) {
+        Screen.fromRoute(currentRoute)?.let { screen ->
+            val parameters = Bundle().apply {
+                putString(FirebaseAnalytics.Param.SCREEN_NAME, screen.analyticsName)
+                putString(FirebaseAnalytics.Param.SCREEN_CLASS, MainActivity::class.java.simpleName)
+            }
+            analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, parameters)
+        }
+    }
 
     // Nudges the user to update once a newer version is live on the Play Store.
     InAppUpdateHandler(snackbarHostState)
