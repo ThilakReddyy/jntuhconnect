@@ -2,6 +2,7 @@ package com.dhethi.jntuhconnect.presentation.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.MenuBook
@@ -24,11 +26,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -42,34 +46,89 @@ import com.dhethi.jntuhconnect.presentation.components.GradeDot
 import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
+import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
 import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
 
-/** Material hall-ticket input used by the primary result lookup. */
+/** Layered search control matching the dark academic-record hero. */
 @Composable
 fun HeroSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    modifier: Modifier = Modifier,
-    error: String? = null
+    modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = { onValueChange(normalizeRollNumber(it)) },
-        modifier = modifier.fillMaxWidth(),
-        singleLine = true,
-        shape = ShapeMd,
-        label = { Text("Hall ticket number") },
-        placeholder = { Text("e.g. 18E51A0479") },
-        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-        supportingText = error?.let { message -> { Text(message) } },
-        isError = error != null,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Characters,
-            imeAction = ImeAction.Search
-        ),
-        keyboardActions = KeyboardActions(onSearch = { onSubmit() })
-    )
+    val dark = LocalJntuhDarkTheme.current
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        shape = ShapeLg,
+        color = if (dark) Color(0xFF292C31) else Color(0xFF555D66),
+        border = BorderStroke(
+            1.dp,
+            if (dark) Color(0xFF454950) else Color(0xFF737B84)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                value = value,
+                onValueChange = { onValueChange(normalizeRollNumber(it)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(ShapeMd),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.titleMedium,
+                placeholder = {
+                    Text(
+                        "Enter roll number",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFFBFC2C7)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Rounded.Search,
+                        contentDescription = null,
+                        tint = Color(0xFFBFC2C7)
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
+                    unfocusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                )
+            )
+            Box(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(56.dp)
+                    .clip(ShapeMd)
+                    .background(Color.White)
+                    .clickable(onClick = onSubmit),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowForward,
+                    contentDescription = "Search",
+                    tint = Color.Black,
+                    modifier = Modifier.size(27.dp)
+                )
+            }
+        }
+    }
 }
 
 /** Large quick-tool tile used in the two-column Home grid. */

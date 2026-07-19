@@ -27,7 +27,7 @@ class AppNavigationTest {
     @Test
     fun topLevelNavigationAndHomeValidationWork() {
         compose.onNodeWithText("Find student results").assertIsDisplayed()
-        compose.onNodeWithText("View results").performClick()
+        compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithText("Roll number cannot be empty").assertIsDisplayed()
 
         openExplore()
