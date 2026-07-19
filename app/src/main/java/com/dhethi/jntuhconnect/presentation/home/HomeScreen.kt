@@ -1,5 +1,6 @@
 package com.dhethi.jntuhconnect.presentation.home
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,15 +19,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,13 +34,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.R
 import com.dhethi.jntuhconnect.presentation.components.RollInputSheet
@@ -52,8 +56,9 @@ import com.dhethi.jntuhconnect.presentation.explore.ToolAction
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.explore.homeQuickTools
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
-import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
+import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 
 @Composable
 fun HomeScreen(
@@ -102,27 +107,43 @@ fun HomeScreen(
         }
     }
 
+    val dark = LocalJntuhDarkTheme.current
     val listState = rememberLazyListState()
-    val headerScrolled by remember {
+    val heroScrolled by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
+    }
+    val homeBackground = MaterialTheme.colorScheme.background
+    val view = LocalView.current
+
+    DisposableEffect(view, dark, heroScrolled) {
+        if (!view.isInEditMode) {
+            val controller = WindowCompat.getInsetsController((view.context as Activity).window, view)
+            controller.isAppearanceLightStatusBars = heroScrolled && !dark
+        }
+        onDispose {
+            if (!view.isInEditMode) {
+                WindowCompat.getInsetsController((view.context as Activity).window, view)
+                    .isAppearanceLightStatusBars = !dark
+            }
         }
     }
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(homeBackground)
     ) {
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(homeBackground),
             contentPadding = PaddingValues(bottom = Dimens.spaceXxl)
         ) {
             item {
-                HomeHeader(
+                HomeHero(
                     rollValue = roll,
                     onRollChange = { roll = it },
                     onSubmit = ::submitSearch,
@@ -250,98 +271,93 @@ fun HomeScreen(
             }
         }
 
-        if (headerScrolled) {
-            StatusBarScrim(brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.background))
+        if (heroScrolled) {
+            StatusBarScrim(brush = androidx.compose.ui.graphics.SolidColor(homeBackground))
         }
     }
 }
 
 @Composable
-private fun HomeHeader(
+private fun HomeHero(
     rollValue: String,
     onRollChange: (String) -> Unit,
     onSubmit: () -> Unit,
     error: String?
 ) {
-    Column(
+    val dark = LocalJntuhDarkTheme.current
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = Dimens.space)
-            .padding(top = Dimens.spaceMd)
+            .background(brandGradient(dark))
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimens.spaceXs),
-            verticalAlignment = Alignment.CenterVertically
+                .statusBarsPadding()
+                .padding(horizontal = Dimens.spaceLg)
+                .padding(top = Dimens.space, bottom = Dimens.spaceXl)
         ) {
-            Surface(
-                modifier = Modifier.size(40.dp),
-                shape = ShapeMd,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_launcher),
-                    contentDescription = null,
-                    modifier = Modifier.padding(5.dp)
-                )
-            }
-            Spacer(Modifier.width(Dimens.spaceMd))
-            Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF232428)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_launcher),
+                        contentDescription = "JNTUH Connect logo",
+                        modifier = Modifier.padding(6.dp)
+                    )
+                }
+                Spacer(Modifier.width(Dimens.spaceMd))
                 Text(
                     "JNTUH Connect",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Default
                 )
+                Spacer(Modifier.weight(1f))
                 Text(
-                    "Student academic companion",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "Student portal",
+                    color = Color.White.copy(alpha = 0.58f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-        }
 
-        Spacer(Modifier.height(Dimens.spaceXl))
-        Surface(
-            shape = ShapeLg,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            tonalElevation = Dimens.elevationSm
-        ) {
-            Column(Modifier.padding(Dimens.spaceLg)) {
+            Spacer(Modifier.height(32.dp))
+            Text(
+                "Find student results",
+                color = Color.White,
+                fontSize = 35.sp,
+                lineHeight = 42.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Default,
+                letterSpacing = (-0.5).sp
+            )
+            Spacer(Modifier.height(Dimens.spaceMd))
+            Text(
+                "Search results, backlogs, and credits with your hall ticket number.",
+                color = Color.White.copy(alpha = 0.70f),
+                fontSize = 16.sp,
+                lineHeight = 23.sp
+            )
+            Spacer(Modifier.height(Dimens.spaceXl))
+            HeroSearchBar(
+                value = rollValue,
+                onValueChange = onRollChange,
+                onSubmit = onSubmit
+            )
+            if (error != null) {
+                Spacer(Modifier.height(Dimens.spaceSm))
                 Text(
-                    "Find student results",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    text = error,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color(0xFFFFB4AB)
                 )
-                Spacer(Modifier.height(Dimens.spaceXs))
-                Text(
-                    "Enter a hall ticket number to view results, backlogs, and credits.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(Dimens.spaceLg))
-                HeroSearchBar(
-                    value = rollValue,
-                    onValueChange = onRollChange,
-                    onSubmit = onSubmit,
-                    error = error
-                )
-                Spacer(Modifier.height(Dimens.spaceMd))
-                Button(
-                    onClick = onSubmit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = ShapeMd
-                ) {
-                    Icon(Icons.Rounded.Search, contentDescription = null)
-                    Spacer(Modifier.width(Dimens.spaceSm))
-                    Text("View results")
-                }
             }
         }
-        Spacer(Modifier.height(Dimens.spaceXs))
     }
 }
 
