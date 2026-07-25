@@ -22,7 +22,9 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,80 +60,62 @@ fun HeroSearchBar(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dark = LocalJntuhDarkTheme.current
-    Surface(
+    TextField(
+        value = value,
+        onValueChange = { onValueChange(normalizeRollNumber(it)) },
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp),
-        shape = ShapeLg,
-        color = if (dark) Color(0xFF292C31) else Color(0xFF555D66),
-        border = BorderStroke(
-            1.dp,
-            if (dark) Color(0xFF454950) else Color(0xFF737B84)
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = value,
-                onValueChange = { onValueChange(normalizeRollNumber(it)) },
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(ShapeMd),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.titleMedium,
-                placeholder = {
-                    Text(
-                        "Enter roll number",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFFBFC2C7)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = Color(0xFFBFC2C7)
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Characters,
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
-                    unfocusedContainerColor = if (dark) Color(0xFF1E2024) else Color(0xFF3F464E),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                )
+            .height(64.dp),
+        singleLine = true,
+        shape = ShapeMd,
+        textStyle = MaterialTheme.typography.bodyLarge,
+        label = { Text("Hall ticket number") },
+        placeholder = { Text("e.g. 18E51A0479") },
+        leadingIcon = {
+            Icon(
+                Icons.Rounded.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Box(
+        },
+        trailingIcon = {
+            FilledIconButton(
+                onClick = onSubmit,
                 modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(56.dp)
-                    .clip(ShapeMd)
-                    .background(Color.White)
-                    .clickable(onClick = onSubmit),
-                contentAlignment = Alignment.Center
+                    .padding(end = Dimens.spaceSm)
+                    .size(44.dp),
+                shape = ShapeMd,
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowForward,
                     contentDescription = "Search",
-                    tint = Color.Black,
-                    modifier = Modifier.size(27.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
-        }
-    }
+        },
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Characters,
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
 }
 
-/** Large quick-tool tile used in the two-column Home grid. */
+/** Quick-tool tile used in the horizontally scrollable Home row. */
 @Composable
 fun QuickToolCard(
     tool: ToolItem,

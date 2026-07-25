@@ -1,10 +1,10 @@
 package com.dhethi.jntuhconnect.presentation.home
 
-import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -45,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.R
 import com.dhethi.jntuhconnect.presentation.components.RollInputSheet
@@ -56,9 +54,7 @@ import com.dhethi.jntuhconnect.presentation.explore.ToolAction
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.explore.homeQuickTools
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
-import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
-import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 
 @Composable
 fun HomeScreen(
@@ -107,7 +103,6 @@ fun HomeScreen(
         }
     }
 
-    val dark = LocalJntuhDarkTheme.current
     val listState = rememberLazyListState()
     val heroScrolled by remember {
         derivedStateOf {
@@ -115,21 +110,6 @@ fun HomeScreen(
         }
     }
     val homeBackground = MaterialTheme.colorScheme.background
-    val view = LocalView.current
-
-    DisposableEffect(view, dark, heroScrolled) {
-        if (!view.isInEditMode) {
-            val controller = WindowCompat.getInsetsController((view.context as Activity).window, view)
-            controller.isAppearanceLightStatusBars = heroScrolled && !dark
-        }
-        onDispose {
-            if (!view.isInEditMode) {
-                WindowCompat.getInsetsController((view.context as Activity).window, view)
-                    .isAppearanceLightStatusBars = !dark
-            }
-        }
-    }
-
     Box(
         Modifier
             .fillMaxSize()
@@ -163,21 +143,18 @@ fun HomeScreen(
                     )
                 )
             }
-            items(homeQuickTools.chunked(2)) { rowTools ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Dimens.space, vertical = Dimens.spaceXs),
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = Dimens.space),
                     horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
                 ) {
-                    rowTools.forEach { tool ->
+                    items(homeQuickTools, key = { it.title }) { tool ->
                         QuickToolCard(
                             tool = tool,
                             onClick = { onTool(tool) },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.width(168.dp)
                         )
                     }
-                    if (rowTools.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
 
@@ -284,24 +261,24 @@ private fun HomeHero(
     onSubmit: () -> Unit,
     error: String?
 ) {
-    val dark = LocalJntuhDarkTheme.current
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .background(brandGradient(dark))
+            .background(MaterialTheme.colorScheme.surface)
     ) {
+        val compact = maxWidth < 360.dp
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = Dimens.spaceLg)
+                .padding(horizontal = if (compact) Dimens.space else Dimens.spaceLg)
                 .padding(top = Dimens.space, bottom = Dimens.spaceXl)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(if (compact) 40.dp else 44.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF232428)
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_launcher),
@@ -312,38 +289,32 @@ private fun HomeHero(
                 Spacer(Modifier.width(Dimens.spaceMd))
                 Text(
                     "JNTUH Connect",
-                    color = Color.White,
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Default
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "Student portal",
-                    color = Color.White.copy(alpha = 0.58f),
-                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = FontFamily.Default
+                    ),
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(if (compact) Dimens.spaceXl else Dimens.spaceXxl))
             Text(
                 "Find student results",
-                color = Color.White,
-                fontSize = 35.sp,
-                lineHeight = 42.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Default,
-                letterSpacing = (-0.5).sp
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontFamily = FontFamily.Default,
+                    fontSize = if (compact) 28.sp else 32.sp,
+                    lineHeight = if (compact) 34.sp else 40.sp
+                ),
+                fontWeight = FontWeight.SemiBold
             )
-            Spacer(Modifier.height(Dimens.spaceMd))
+            Spacer(Modifier.height(Dimens.spaceSm))
             Text(
-                "Search results, backlogs, and credits with your hall ticket number.",
-                color = Color.White.copy(alpha = 0.70f),
-                fontSize = 16.sp,
-                lineHeight = 23.sp
+                "Enter your hall ticket number to see results, backlogs, and credits.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge
             )
-            Spacer(Modifier.height(Dimens.spaceXl))
+            Spacer(Modifier.height(Dimens.spaceLg))
             HeroSearchBar(
                 value = rollValue,
                 onValueChange = onRollChange,
