@@ -1,6 +1,11 @@
 package com.dhethi.jntuhconnect.presentation.profile
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,17 +35,22 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.presentation.Screen
@@ -102,6 +113,28 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val themeMode by viewModel.themeMode.collectAsState()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val notificationUpdateInProgress by viewModel.notificationUpdateInProgress.collectAsState()
+    val notificationMessage by viewModel.notificationMessage.collectAsState()
+    var notificationPermissionGranted by remember {
+        mutableStateOf(hasNotificationPermission(context))
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notificationPermissionGranted = granted
+        if (granted) {
+            viewModel.setNotificationsEnabled(true)
+        } else {
+            viewModel.onNotificationPermissionDenied()
+        }
+    }
+
+    LaunchedEffect(notificationPermissionGranted, notificationsEnabled) {
+        if (!notificationPermissionGranted && notificationsEnabled) {
+            viewModel.setNotificationsEnabled(false)
+        }
+    }
 
     val version = remember(context) {
         runCatching {
@@ -148,6 +181,34 @@ fun ProfileScreen(
                     onSelect = viewModel::setThemeMode
                 )
             }
+        }
+
+        // Notifications
+        item {
+            SectionHeader(
+                "Notifications",
+                modifier = Modifier.padding(horizontal = Dimens.space, vertical = Dimens.spaceMd)
+            )
+        }
+        item {
+            NotificationSettingsCard(
+                enabled = notificationsEnabled && notificationPermissionGranted,
+                updating = notificationUpdateInProgress,
+                message = notificationMessage,
+                onEnabledChange = { enabled ->
+                    if (
+                        enabled &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        !notificationPermissionGranted
+                    ) {
+                        viewModel.markNotificationPermissionRequested()
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        viewModel.setNotificationsEnabled(enabled)
+                    }
+                },
+                modifier = Modifier.padding(horizontal = Dimens.space)
+            )
         }
 
         // Help and community
@@ -214,6 +275,63 @@ fun ProfileScreen(
         }
     }
 }
+
+@Composable
+private fun NotificationSettingsCard(
+    enabled: Boolean,
+    updating: Boolean,
+    message: String?,
+    onEnabledChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AppCard(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Notifications,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(Dimens.icon)
+            )
+            Spacer(Modifier.width(Dimens.spaceMd))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Result alerts",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    "Get notified about result releases and important updates",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.width(Dimens.spaceMd))
+            Switch(
+                checked = enabled,
+                onCheckedChange = onEnabledChange,
+                enabled = !updating
+            )
+        }
+        if (message != null) {
+            Spacer(Modifier.height(Dimens.spaceSm))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+private fun hasNotificationPermission(context: android.content.Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
 
 @Composable
 private fun ProfileHeader() {

@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local Firebase Admin credentials (keep private keys outside the repository).
+service-account*.json
+*-firebase-adminsdk-*.json
+.secrets/

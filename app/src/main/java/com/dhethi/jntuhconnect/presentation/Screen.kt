@@ -23,25 +23,29 @@ sealed class Screen(
     data object Chatbot : Screen("chatbot", "chatbot")
 
     companion object {
-        val all = listOf(
-            Home,
-            Explore,
-            Profile,
-            Updates,
-            StudentResults,
-            ResultContrast,
-            ClassResult,
-            GraceMarks,
-            Calendars,
-            Syllabus,
-            Channels,
-            Careers,
-            Help,
-            Chatbot
-        )
+        val all: List<Screen> by lazy {
+            listOf(
+                Home,
+                Explore,
+                Profile,
+                Updates,
+                StudentResults,
+                ResultContrast,
+                ClassResult,
+                GraceMarks,
+                Calendars,
+                Syllabus,
+                Channels,
+                Careers,
+                Help,
+                Chatbot
+            )
+        }
 
         /** Routes that show the bottom navigation bar. */
-        val topLevelRoutes = setOf(Home.route, Explore.route, Profile.route)
+        val topLevelRoutes: Set<String> by lazy {
+            setOf(Home.route, Explore.route, Profile.route)
+        }
 
         /** Resolves both simple routes and routes containing arguments. */
         fun fromRoute(route: String?): Screen? {

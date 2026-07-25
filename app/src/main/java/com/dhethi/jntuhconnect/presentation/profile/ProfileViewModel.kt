@@ -6,13 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dhethi.jntuhconnect.data.local.entities.StudentDetailsEntity
 import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.domain.use_case.get_all_student_details.GetAllStudentDetailsUseCase
-import com.dhethi.jntuhconnect.presentation.JntuhConnect
 import com.dhethi.jntuhconnect.presentation.theme.ThemeMode
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val appPreferences: AppPreferences,
+    private val notificationRepository: NotificationRepository,
     getAllDetailsUseCase: GetAllStudentDetailsUseCase
 ) : ViewModel() {
 
@@ -32,6 +34,12 @@ class ProfileViewModel @Inject constructor(
     private val _students = mutableStateOf<List<StudentDetailsEntity>>(emptyList())
     val students: State<List<StudentDetailsEntity>> = _students
 
+    private val _notificationUpdateInProgress = MutableStateFlow(false)
+    val notificationUpdateInProgress = _notificationUpdateInProgress.asStateFlow()
+
+    private val _notificationMessage = MutableStateFlow<String?>(null)
+    val notificationMessage = _notificationMessage.asStateFlow()
+
     init {
         viewModelScope.launch {
             getAllDetailsUseCase().collect { _students.value = it }
@@ -43,12 +51,31 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun setNotificationsEnabled(enabled: Boolean) {
-        viewModelScope.launch { appPreferences.setNotificationsEnabled(enabled) }
-        val messaging = FirebaseMessaging.getInstance()
-        if (enabled) {
-            messaging.subscribeToTopic(JntuhConnect.RESULT_NOTIFICATIONS_TOPIC)
-        } else {
-            messaging.unsubscribeFromTopic(JntuhConnect.RESULT_NOTIFICATIONS_TOPIC)
+        if (_notificationUpdateInProgress.value) return
+        viewModelScope.launch {
+            _notificationUpdateInProgress.value = true
+            _notificationMessage.value = null
+            runCatching {
+                notificationRepository.setResultNotificationsEnabled(enabled)
+            }.onFailure {
+                _notificationMessage.value = if (enabled) {
+                    "Could not enable notifications. Check your connection and try again."
+                } else {
+                    "Could not disable notifications. Check your connection and try again."
+                }
+            }
+            _notificationUpdateInProgress.value = false
         }
+    }
+
+    fun markNotificationPermissionRequested() {
+        viewModelScope.launch {
+            appPreferences.markNotificationPermissionRequested()
+        }
+    }
+
+    fun onNotificationPermissionDenied() {
+        _notificationMessage.value =
+            "Notification permission is required. You can enable it in Android settings."
     }
 }

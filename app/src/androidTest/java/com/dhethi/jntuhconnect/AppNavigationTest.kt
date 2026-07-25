@@ -1,5 +1,6 @@
 package com.dhethi.jntuhconnect
 
+import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasScrollAction
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dhethi.jntuhconnect.presentation.MainActivity
+import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,6 +36,8 @@ class AppNavigationTest {
         compose.onNodeWithText("Profile").performClick()
         compose.onNodeWithText("Profile & settings").assertIsDisplayed()
         compose.onNodeWithText("Appearance").assertIsDisplayed()
+        compose.onNodeWithText("Notifications").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Result alerts").assertIsDisplayed()
         compose.onNodeWithText("Light").performClick()
         compose.onNodeWithText("Dark").performClick()
         compose.onNodeWithText("System").performClick()
@@ -81,6 +85,24 @@ class AppNavigationTest {
         compose.onNodeWithText("Updates").assertIsDisplayed()
         pressBack()
         compose.onNodeWithText("Profile").assertIsDisplayed()
+    }
+
+    @Test
+    fun notificationTapOpensUpdates() {
+        compose.activityRule.scenario.onActivity { activity ->
+            activity.startActivity(
+                Intent(activity, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra(
+                        MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION,
+                        MyFirebaseMessagingService.DESTINATION_UPDATES
+                    )
+                }
+            )
+        }
+
+        compose.onNodeWithText("Updates").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Filter").assertIsDisplayed()
     }
 
     @Test

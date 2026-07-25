@@ -10,11 +10,25 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.dhethi.jntuhconnect.R
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.presentation.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var notificationRepository: NotificationRepository
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val title = remoteMessage.notification?.title
@@ -26,9 +40,24 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         showNotification(title, body, remoteMessage.data["link"])
     }
 
+    override fun onRegistered(installationId: String) {
+        super.onRegistered(installationId)
+        serviceScope.launch {
+            runCatching {
+                notificationRepository.restoreResultNotificationSubscription()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
+    }
+
     private fun showNotification(title: String, message: String, link: String?) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(EXTRA_NOTIFICATION_DESTINATION, DESTINATION_UPDATES)
             link?.let { putExtra(EXTRA_NOTIFICATION_LINK, it) }
         }
         val pendingIntent = PendingIntent.getActivity(
@@ -72,5 +101,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
         const val EXTRA_NOTIFICATION_LINK = "notification_link"
+        const val EXTRA_NOTIFICATION_DESTINATION = "destination"
+        const val DESTINATION_UPDATES = "updates"
     }
 }

@@ -28,6 +28,8 @@ class AppPreferences @Inject constructor(
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val NOTIFICATIONS = booleanPreferencesKey("notifications_enabled")
+        val NOTIFICATION_PERMISSION_REQUESTED =
+            booleanPreferencesKey("notification_permission_requested")
         val RECENT_DOCUMENTS = stringPreferencesKey("recent_documents")
     }
 
@@ -39,6 +41,9 @@ class AppPreferences @Inject constructor(
 
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data
         .map { it[Keys.NOTIFICATIONS] ?: false }
+
+    val notificationPermissionRequested: Flow<Boolean> = context.dataStore.data
+        .map { it[Keys.NOTIFICATION_PERMISSION_REQUESTED] ?: false }
 
     val recentDocuments: Flow<List<RecentDocument>> = context.dataStore.data.map { preferences ->
         decodeRecentDocuments(preferences[Keys.RECENT_DOCUMENTS])
@@ -52,6 +57,10 @@ class AppPreferences @Inject constructor(
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.NOTIFICATIONS] = enabled }
+    }
+
+    suspend fun markNotificationPermissionRequested() {
+        context.dataStore.edit { it[Keys.NOTIFICATION_PERMISSION_REQUESTED] = true }
     }
 
     suspend fun recordRecentDocument(document: RecentDocument) {

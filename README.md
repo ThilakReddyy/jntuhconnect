@@ -174,6 +174,32 @@ The app uses **Firebase Cloud Messaging (FCM)** to deliver real-time push notifi
 
 Notification permission is requested at runtime on Android 13+ (`TIRAMISU` and above).
 
+### Send a test notification from Python
+
+The test sender defaults to the `result-updates` topic and can also target one
+Firebase Installation ID:
+
+```bash
+python3 -m pip install -r scripts/requirements-fcm.txt
+export GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/firebase-admin-key.json"
+
+# Send to one test phone
+python3 scripts/send_fcm_notification.py \
+  --title "Test notification" \
+  --body "Firebase messaging is working" \
+  --fid "YOUR_FIREBASE_INSTALLATION_ID"
+
+# Send to every app installation subscribed to result-updates
+python3 scripts/send_fcm_notification.py \
+  --title "Results released" \
+  --body "Tap to view the latest JNTUH results" \
+  --link "https://jntuhresults.dhethi.com/"
+```
+
+Create the private key from Firebase Console → Project settings → Service
+accounts → Generate new private key. Keep that file outside this repository;
+`google-services.json` configures the Android client and cannot authorize sends.
+
 ---
 
 ## 📦 Build Configuration

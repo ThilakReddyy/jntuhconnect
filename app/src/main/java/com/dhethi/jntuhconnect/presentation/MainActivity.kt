@@ -1,5 +1,7 @@
 package com.dhethi.jntuhconnect.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -7,6 +9,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -28,8 +31,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -57,12 +65,37 @@ import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
 import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
 import com.dhethi.jntuhconnect.presentation.update.InAppUpdateHandler
 import com.dhethi.jntuhconnect.presentation.updates.UpdatesScreen
+import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var appPreferences: AppPreferences
+
+    @Inject
+    lateinit var notificationRepository: NotificationRepository
+
+    private var pendingNotificationDestination by mutableStateOf<String?>(null)
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            lifecycleScope.launch {
+                runCatching {
+                    notificationRepository.setResultNotificationsEnabled(true)
+                }
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,10 +105,16 @@ class MainActivity : ComponentActivity() {
             val appViewModel: AppViewModel = hiltViewModel()
             val themeMode by appViewModel.themeMode.collectAsState()
             JntuhConnectTheme(themeMode = themeMode) {
-                AppNavigation()
+                AppNavigation(
+                    notificationDestination = pendingNotificationDestination,
+                    onNotificationDestinationHandled = {
+                        pendingNotificationDestination = null
+                    }
+                )
             }
         }
         handleNotificationIntent(intent)
+        requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -85,14 +124,58 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleNotificationIntent(intent: Intent?) {
+        val destination = intent
+            ?.getStringExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
+        if (destination == Screen.Updates.route) {
+            intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
+            pendingNotificationDestination = destination
+            return
+        }
+
         val link = intent
             ?.let {
                 it.getStringExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK)
                     ?: it.getStringExtra(NOTIFICATION_DATA_LINK)
             }
-            ?.also { intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK) }
             ?: return
+        intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK)
+        intent.removeExtra(NOTIFICATION_DATA_LINK)
         openCustomTab(this, link)
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        lifecycleScope.launch {
+            if (appPreferences.notificationPermissionRequested.first()) {
+                return@launch
+            }
+
+            // Preserve permission decisions made before the app started tracking this itself.
+            if (hasExistingNotificationPermissionDecision()) {
+                appPreferences.markNotificationPermissionRequested()
+                return@launch
+            }
+
+            // Persist before launching so a denial or process recreation cannot re-prompt.
+            appPreferences.markNotificationPermissionRequested()
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun hasExistingNotificationPermissionDecision(): Boolean {
+        return ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        )
     }
 
     private companion object {
@@ -102,13 +185,25 @@ class MainActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun AppNavigation() {
+private fun AppNavigation(
+    notificationDestination: String?,
+    onNotificationDestinationHandled: () -> Unit
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val isTopLevel = currentRoute in Screen.topLevelRoutes
     val snackbarHostState = remember { SnackbarHostState() }
     val analytics = remember { FirebaseAnalytics.getInstance(navController.context) }
+
+    LaunchedEffect(notificationDestination) {
+        notificationDestination?.let { destination ->
+            navController.navigate(destination) {
+                launchSingleTop = true
+            }
+            onNotificationDestinationHandled()
+        }
+    }
 
     LaunchedEffect(currentRoute) {
         Screen.fromRoute(currentRoute)?.let { screen ->
