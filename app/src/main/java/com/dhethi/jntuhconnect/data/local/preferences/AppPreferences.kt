@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.dhethi.jntuhconnect.presentation.theme.ThemeMode
 import com.dhethi.jntuhconnect.domain.model.RecentDocument
@@ -11,7 +12,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,6 +34,8 @@ class AppPreferences @Inject constructor(
         val NOTIFICATION_PERMISSION_REQUESTED =
             booleanPreferencesKey("notification_permission_requested")
         val RECENT_DOCUMENTS = stringPreferencesKey("recent_documents")
+        val RESULT_NOTIFICATION_DEVICE_ID = stringPreferencesKey("result_notification_device_id")
+        val RESULT_NOTIFICATION_ROLLS = stringSetPreferencesKey("result_notification_rolls")
     }
 
     private val gson = Gson()
@@ -61,6 +66,32 @@ class AppPreferences @Inject constructor(
 
     suspend fun markNotificationPermissionRequested() {
         context.dataStore.edit { it[Keys.NOTIFICATION_PERMISSION_REQUESTED] = true }
+    }
+
+    suspend fun resultNotificationDeviceId(): String {
+        context.dataStore.data.first()[Keys.RESULT_NOTIFICATION_DEVICE_ID]?.let { return it }
+        val deviceId = UUID.randomUUID().toString()
+        context.dataStore.edit { preferences ->
+            if (preferences[Keys.RESULT_NOTIFICATION_DEVICE_ID] == null) {
+                preferences[Keys.RESULT_NOTIFICATION_DEVICE_ID] = deviceId
+            }
+        }
+        return context.dataStore.data.first()[Keys.RESULT_NOTIFICATION_DEVICE_ID] ?: deviceId
+    }
+
+    suspend fun subscribedResultRolls(): Set<String> =
+        context.dataStore.data.first()[Keys.RESULT_NOTIFICATION_ROLLS].orEmpty()
+
+    suspend fun isResultRollSubscribed(rollNumber: String): Boolean {
+        val preferences = context.dataStore.data.first()
+        return rollNumber in preferences[Keys.RESULT_NOTIFICATION_ROLLS].orEmpty()
+    }
+
+    suspend fun markResultRollSubscribed(rollNumber: String) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.RESULT_NOTIFICATION_ROLLS] =
+                preferences[Keys.RESULT_NOTIFICATION_ROLLS].orEmpty() + rollNumber
+        }
     }
 
     suspend fun recordRecentDocument(document: RecentDocument) {

@@ -1,5 +1,6 @@
 package com.dhethi.jntuhconnect.presentation.studentResult
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -8,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.common.Resource
 import com.dhethi.jntuhconnect.data.local.entities.StudentDetailsEntity
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.domain.model.AcademicResult
 import com.dhethi.jntuhconnect.domain.model.Details
 import com.dhethi.jntuhconnect.domain.use_case.get_academic_result.GetAcademicResultUseCase
@@ -29,6 +31,7 @@ class StudentResultViewModel @Inject constructor(
     private val getBacklogResultUseCase: GetBacklogResultUseCase,
     private val getCreditsUseCase: GetCreditsUseCase,
     private val saveStudentDetailsUseCase: SaveStudentDetailsUseCase,
+    private val notificationRepository: NotificationRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -38,6 +41,7 @@ class StudentResultViewModel @Inject constructor(
     private var allJob: Job? = null
     private var backlogJob: Job? = null
     private var creditsJob: Job? = null
+    private val attemptedNotificationSubscriptions = mutableSetOf<String>()
 
     init {
         val rollNumber = savedStateHandle.get<String>(Constants.PARAM_ROLL_NUMBER)
@@ -110,6 +114,7 @@ class StudentResultViewModel @Inject constructor(
                         error = if (data?.details == null) "No student result was found." else ""
                     )
                     viewModelScope.launch { saveStudentDetails(data?.details, data?.academicResult) }
+                    if (data?.details != null) subscribeToResultNotifications(rollNumber)
                 }
             }
         }.launchIn(viewModelScope)
@@ -189,5 +194,19 @@ class StudentResultViewModel @Inject constructor(
 
     fun reloadStudentResults() {
         fetchAcademicResult(rollNumber = _state.value.rollNumber)
+    }
+
+    private fun subscribeToResultNotifications(rollNumber: String) {
+        if (!attemptedNotificationSubscriptions.add(rollNumber)) return
+        viewModelScope.launch {
+            runCatching { notificationRepository.subscribeToRoll(rollNumber) }
+                .onFailure { error ->
+                    Log.e(
+                        "ResultSubscription",
+                        "Automatic subscription failed for roll $rollNumber",
+                        error
+                    )
+                }
+        }
     }
 }

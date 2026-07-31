@@ -1,15 +1,20 @@
 package com.dhethi.jntuhconnect.data.repository
 
+import android.util.Log
 import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
+import com.dhethi.jntuhconnect.data.remote.JntuhConnectApi
+import com.dhethi.jntuhconnect.data.remote.ResultSubscriptionRequest
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class NotificationRepository @Inject constructor(
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val api: JntuhConnectApi
 ) {
 
     suspend fun setResultNotificationsEnabled(enabled: Boolean) {
@@ -30,7 +35,44 @@ class NotificationRepository @Inject constructor(
         }
     }
 
+    suspend fun subscribeToRoll(rollNumber: String) {
+        Log.d(TAG, "Requesting FCM token for roll $rollNumber")
+        val token = runCatching {
+            FirebaseMessaging.getInstance().token.await()
+        }.getOrElse { error ->
+            Log.e(TAG, "FCM token request failed for roll $rollNumber", error)
+            throw error
+        }
+        Log.d(TAG, "FCM token acquired for roll $rollNumber (${token.length} characters)")
+        saveRollSubscription(rollNumber, token)
+        appPreferences.markResultRollSubscribed(rollNumber)
+        Log.d(TAG, "Result notification subscription saved for roll $rollNumber")
+    }
+
+    suspend fun refreshRollSubscriptions(token: String) {
+        appPreferences.subscribedResultRolls().forEach { rollNumber ->
+            saveRollSubscription(rollNumber, token)
+        }
+    }
+
+    private suspend fun saveRollSubscription(rollNumber: String, token: String) {
+        val response = api.subscribeToResultUpdates(
+            ResultSubscriptionRequest(
+                deviceId = appPreferences.resultNotificationDeviceId(),
+                deviceToken = token,
+                rollNumber = rollNumber
+            )
+        )
+        if (!response.isSuccessful) {
+            val errorBody = response.errorBody()?.string()?.take(500)
+            throw IOException(
+                "Subscription request failed with HTTP ${response.code()}: $errorBody"
+            )
+        }
+    }
+
     companion object {
+        private const val TAG = "ResultSubscription"
         const val RESULT_NOTIFICATIONS_TOPIC = "result-updates"
     }
 }

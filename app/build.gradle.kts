@@ -63,7 +63,20 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Android Emulator alias for the development machine's localhost.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:8000/api/\""
+            )
+        }
         release {
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://jntuhresults.dhethi.com/api/\""
+            )
             isMinifyEnabled = true
             isShrinkResources = true
 
@@ -87,6 +100,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

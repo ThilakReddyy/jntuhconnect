@@ -37,15 +37,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val body = remoteMessage.notification?.body
             ?: remoteMessage.data["body"]
             ?: "A new result update is available"
-        showNotification(title, body, remoteMessage.data["link"])
+        showNotification(title, body, remoteMessage.data)
     }
 
-    override fun onRegistered(installationId: String) {
-        super.onRegistered(installationId)
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
         serviceScope.launch {
-            runCatching {
-                notificationRepository.restoreResultNotificationSubscription()
-            }
+            runCatching { notificationRepository.restoreResultNotificationSubscription() }
+            runCatching { notificationRepository.refreshRollSubscriptions(token) }
         }
     }
 
@@ -54,11 +53,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onDestroy()
     }
 
-    private fun showNotification(title: String, message: String, link: String?) {
+    private fun showNotification(title: String, message: String, data: Map<String, String>) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(EXTRA_NOTIFICATION_DESTINATION, DESTINATION_UPDATES)
-            link?.let { putExtra(EXTRA_NOTIFICATION_LINK, it) }
+            putExtra(
+                EXTRA_NOTIFICATION_DESTINATION,
+                data[EXTRA_NOTIFICATION_DESTINATION] ?: DESTINATION_UPDATES
+            )
+            data[EXTRA_NOTIFICATION_LINK]?.let { putExtra(EXTRA_NOTIFICATION_LINK, it) }
+            data[EXTRA_NOTIFICATION_ROLL_NUMBER]?.let {
+                putExtra(EXTRA_NOTIFICATION_ROLL_NUMBER, it)
+            }
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -102,6 +107,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         const val EXTRA_NOTIFICATION_LINK = "notification_link"
         const val EXTRA_NOTIFICATION_DESTINATION = "destination"
+        const val EXTRA_NOTIFICATION_ROLL_NUMBER = "rollNumber"
         const val DESTINATION_UPDATES = "updates"
+        const val DESTINATION_STUDENT_RESULT = "student-result"
     }
 }

@@ -1,7 +1,9 @@
 package com.dhethi.jntuhconnect.common
 
+import com.dhethi.jntuhconnect.BuildConfig
+
 object Constants {
-    const val BASE_URL = "https://jntuhresults.dhethi.com/api/"
+    val BASE_URL: String = BuildConfig.API_BASE_URL
     const val TITLE = "Jntuh Connect"
     const val PARAM_ROLL_NUMBER = "rollNumber"
     const val ALL_RESULTS = "All Results"

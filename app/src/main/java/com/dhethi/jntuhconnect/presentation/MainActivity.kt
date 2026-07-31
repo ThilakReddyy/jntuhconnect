@@ -125,11 +125,26 @@ class MainActivity : ComponentActivity() {
 
     private fun handleNotificationIntent(intent: Intent?) {
         val destination = intent
-            ?.getStringExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
+            ?.let {
+                it.getStringExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
+                    ?: it.getStringExtra(NOTIFICATION_DATA_DESTINATION)
+            }
         if (destination == Screen.Updates.route) {
             intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
             pendingNotificationDestination = destination
             return
+        }
+        if (destination == MyFirebaseMessagingService.DESTINATION_STUDENT_RESULT) {
+            val rollNumber = intent.getStringExtra(
+                MyFirebaseMessagingService.EXTRA_NOTIFICATION_ROLL_NUMBER
+            )
+            if (rollNumber?.length == 10 && rollNumber.all(Char::isLetterOrDigit)) {
+                intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_DESTINATION)
+                intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_ROLL_NUMBER)
+                pendingNotificationDestination =
+                    "${Screen.StudentResults.route}/${rollNumber.uppercase()}"
+                return
+            }
         }
 
         val link = intent
@@ -180,6 +195,7 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         const val NOTIFICATION_DATA_LINK = "link"
+        const val NOTIFICATION_DATA_DESTINATION = "destination"
     }
 }
 
