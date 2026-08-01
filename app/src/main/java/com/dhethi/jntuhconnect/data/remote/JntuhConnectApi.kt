@@ -11,6 +11,7 @@ import com.dhethi.jntuhconnect.data.remote.dto.StudentAcademicResultDto
 import com.dhethi.jntuhconnect.data.remote.dto.StudentAllResultDto
 import com.dhethi.jntuhconnect.data.remote.dto.StudentBacklogResultDto
 import com.google.gson.JsonObject
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
 import okhttp3.MultipartBody
@@ -21,9 +22,9 @@ import retrofit2.http.Part
 import retrofit2.http.Query
 
 data class ResultSubscriptionRequest(
-    val deviceId: String,
-    val deviceToken: String,
-    val rollNumber: String
+    @SerializedName("deviceId") val deviceId: String,
+    @SerializedName("deviceToken") val deviceToken: String,
+    @SerializedName("rollNumber") val rollNumber: String
 )
 
 interface JntuhConnectApi {
