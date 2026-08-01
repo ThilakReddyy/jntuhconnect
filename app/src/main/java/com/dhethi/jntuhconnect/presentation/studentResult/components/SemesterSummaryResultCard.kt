@@ -32,8 +32,8 @@ import com.dhethi.jntuhconnect.presentation.components.gradeColor
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
 /**
- * Expandable per-semester card used on the Academic and Backlog tabs. Shows the
- * semester number, an SGPA chip and credits summary, and the subject rows.
+ * Per-semester card used on the Academic and Backlog tabs. It can show all
+ * subjects immediately or collapse them for denser screens.
  */
 @Composable
 fun SemesterCard(
@@ -41,9 +41,11 @@ fun SemesterCard(
     modifier: Modifier = Modifier,
     showSgpa: Boolean = true,
     initiallyExpanded: Boolean = false,
+    expandable: Boolean = true,
+    detailedSubjects: Boolean = false,
     dashForZeroMarks: Boolean = true
 ) {
-    var expanded by remember { mutableStateOf(initiallyExpanded) }
+    var expanded by remember { mutableStateOf(initiallyExpanded || !expandable) }
     val sgpa = semester.semesterSGPA
     val sgpaColor = when {
         semester.failed -> MaterialTheme.colorScheme.error
@@ -55,7 +57,7 @@ fun SemesterCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded },
+                .then(if (expandable) Modifier.clickable { expanded = !expanded } else Modifier),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -80,12 +82,14 @@ fun SemesterCard(
                 )
                 Spacer(Modifier.width(Dimens.spaceSm))
             }
-            Icon(
-                Icons.Rounded.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "Expand",
-                modifier = Modifier.rotate(if (expanded) 180f else 0f),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (expandable) {
+                Icon(
+                    Icons.Rounded.ExpandMore,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    modifier = Modifier.rotate(if (expanded) 180f else 0f),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         AnimatedVisibility(visible = expanded) {
@@ -94,7 +98,11 @@ fun SemesterCard(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 semester.subjects.forEachIndexed { index, subject ->
                     if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SubjectRow(subject = subject, dashForZeroMarks = dashForZeroMarks)
+                    SubjectRow(
+                        subject = subject,
+                        dashForZeroMarks = dashForZeroMarks,
+                        detailedMarks = detailedSubjects
+                    )
                 }
             }
         }

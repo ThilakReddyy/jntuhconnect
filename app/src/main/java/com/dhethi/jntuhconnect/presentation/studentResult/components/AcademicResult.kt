@@ -33,11 +33,12 @@ fun AcademicResults(studentResult: AcademicResult?) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        result.semesters.forEachIndexed { index, semester ->
+        result.semesters.forEach { semester ->
             SemesterCard(
                 semester = semester,
                 showSgpa = true,
-                initiallyExpanded = index == 0
+                expandable = false,
+                detailedSubjects = true
             )
         }
     }
