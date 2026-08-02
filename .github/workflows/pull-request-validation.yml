@@ -70,6 +70,15 @@ jobs:
             adb shell pm grant com.dhethi.jntuhconnect android.permission.POST_NOTIFICATIONS
             ./gradlew connectedDebugAndroidTest --no-daemon
 
+      - name: Upload instrumentation test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumentation-test-report
+          path: app/build/reports/androidTests/connected/
+          if-no-files-found: warn
+          retention-days: 14
+
   approve:
     name: Approve after all tests pass
     needs: [unit-tests, instrumentation-tests]

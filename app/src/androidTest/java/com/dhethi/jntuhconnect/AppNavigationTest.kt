@@ -15,6 +15,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.dhethi.jntuhconnect.presentation.MainActivity
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import org.junit.Rule
@@ -89,8 +90,11 @@ class AppNavigationTest {
 
     @Test
     fun notificationTapOpensUpdates() {
+        lateinit var launchIntent: Intent
         compose.activityRule.scenario.onActivity { activity ->
-            activity.startActivity(
+            launchIntent = activity.intent
+            InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(
+                activity,
                 Intent(activity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     putExtra(
@@ -103,6 +107,9 @@ class AppNavigationTest {
 
         compose.onNodeWithText("Updates").assertIsDisplayed()
         compose.onNodeWithContentDescription("Filter").assertIsDisplayed()
+        compose.activityRule.scenario.onActivity { activity ->
+            activity.intent = launchIntent
+        }
     }
 
     @Test
