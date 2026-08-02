@@ -1,22 +1,24 @@
 package com.dhethi.jntuhconnect.presentation.home
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.common.Resource
+import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
+import com.dhethi.jntuhconnect.domain.model.RecentDocument
 import com.dhethi.jntuhconnect.domain.use_case.delete_all_student_details.DeleteAllStudentDetailsUseCase
 import com.dhethi.jntuhconnect.domain.use_case.get_all_student_details.GetAllStudentDetailsUseCase
 import com.dhethi.jntuhconnect.domain.use_case.get_latest_notifications.GetLatestNotificationsUseCase
-import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
-import com.dhethi.jntuhconnect.domain.model.RecentDocument
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -27,7 +29,8 @@ class HomeViewModel @Inject constructor(
     private val getAllDetailsUseCase: GetAllStudentDetailsUseCase,
     private val deleteAllStudentDetailsUseCase: DeleteAllStudentDetailsUseCase,
     private val getLatestNotificationsUseCase: GetLatestNotificationsUseCase,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val notificationRepository: NotificationRepository
 ) : ViewModel() {
 
     private val _state = mutableStateOf(HomeState())
@@ -80,7 +83,17 @@ class HomeViewModel @Inject constructor(
     }
 
     fun deleteAllStudents() {
-        viewModelScope.launch { deleteAllStudentDetailsUseCase() }
+        viewModelScope.launch {
+            deleteAllStudentDetailsUseCase()
+            runCatching { notificationRepository.deleteAllRollSubscriptions() }
+                .onFailure { error ->
+                    Log.e(
+                        "ResultSubscription",
+                        "Failed to delete backend subscriptions after clearing local students",
+                        error
+                    )
+                }
+        }
     }
 
     fun clearRecentDocuments() {

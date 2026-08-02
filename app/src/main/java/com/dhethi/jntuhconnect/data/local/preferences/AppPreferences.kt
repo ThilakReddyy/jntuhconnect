@@ -94,6 +94,10 @@ class AppPreferences @Inject constructor(
         }
     }
 
+    suspend fun clearResultRollSubscriptions() {
+        context.dataStore.edit { it.remove(Keys.RESULT_NOTIFICATION_ROLLS) }
+    }
+
     suspend fun recordRecentDocument(document: RecentDocument) {
         context.dataStore.edit { preferences ->
             val now = System.currentTimeMillis()

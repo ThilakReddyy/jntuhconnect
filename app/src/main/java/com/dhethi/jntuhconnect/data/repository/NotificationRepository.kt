@@ -55,6 +55,21 @@ class NotificationRepository @Inject constructor(
         }
     }
 
+    suspend fun deleteAllRollSubscriptions() {
+        // Clearing the app must not depend on network availability.
+        appPreferences.clearResultRollSubscriptions()
+        val response = api.deleteResultSubscriptions(
+            deviceId = appPreferences.resultNotificationDeviceId()
+        )
+        if (!response.isSuccessful) {
+            val errorBody = response.errorBody()?.string()?.take(500)
+            throw IOException(
+                "Subscription deletion failed with HTTP ${response.code()}: $errorBody"
+            )
+        }
+        Log.d(TAG, "All result notification subscriptions deleted for this device")
+    }
+
     private suspend fun saveRollSubscription(rollNumber: String, token: String) {
         val response = api.subscribeToResultUpdates(
             ResultSubscriptionRequest(

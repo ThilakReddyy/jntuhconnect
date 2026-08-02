@@ -12,9 +12,10 @@ import com.dhethi.jntuhconnect.data.remote.dto.StudentAllResultDto
 import com.dhethi.jntuhconnect.data.remote.dto.StudentBacklogResultDto
 import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
-import okhttp3.MultipartBody
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -32,6 +33,11 @@ interface JntuhConnectApi {
     @POST("result-subscriptions")
     suspend fun subscribeToResultUpdates(
         @Body request: ResultSubscriptionRequest
+    ): Response<Unit>
+
+    @DELETE("result-subscriptions")
+    suspend fun deleteResultSubscriptions(
+        @Query("deviceId") deviceId: String
     ): Response<Unit>
 
     @GET("getAllResult")
