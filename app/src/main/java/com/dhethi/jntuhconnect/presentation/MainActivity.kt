@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -212,8 +213,12 @@ private fun AppNavigation(
     val snackbarHostState = remember { SnackbarHostState() }
     val analytics = remember { FirebaseAnalytics.getInstance(navController.context) }
 
-    LaunchedEffect(notificationDestination) {
+    LaunchedEffect(notificationDestination, navBackStackEntry) {
         notificationDestination?.let { destination ->
+            val entry = navBackStackEntry ?: return@let
+            entry.lifecycle.currentStateFlow.first {
+                it == Lifecycle.State.RESUMED
+            }
             navController.navigate(destination) {
                 launchSingleTop = true
             }
@@ -274,28 +279,34 @@ private fun AppNavHost(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                onOpenStudent = { roll -> navController.navigate("${Screen.StudentResults.route}/$roll") },
-                onOpenStudentTab = { roll, tab ->
-                    navController.navigate("${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}")
+                onOpenStudent = { roll ->
+                    navController.navigateSafely("${Screen.StudentResults.route}/$roll")
                 },
-                onOpenRoute = { route -> navController.navigate(route) }
+                onOpenStudentTab = { roll, tab ->
+                    navController.navigateSafely(
+                        "${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}"
+                    )
+                },
+                onOpenRoute = navController::navigateSafely
             )
         }
         composable(Screen.Explore.route) {
             ExploreScreen(
                 onOpenStudentTab = { roll, tab ->
-                    navController.navigate("${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}")
+                    navController.navigateSafely(
+                        "${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}"
+                    )
                 },
-                onOpenRoute = { route -> navController.navigate(route) }
+                onOpenRoute = navController::navigateSafely
             )
         }
         composable(Screen.Profile.route) {
             ProfileScreen(
-                onOpenRoute = { route -> navController.navigate(route) }
+                onOpenRoute = navController::navigateSafely
             )
         }
         composable(Screen.Updates.route) {
-            UpdatesScreen(navigateBack = { navController.popBackStack() })
+            UpdatesScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(
             route = "${Screen.StudentResults.route}/{rollNumber}?startTab={startTab}",
@@ -307,50 +318,70 @@ private fun AppNavHost(
                 }
             )
         ) {
-            StudentResultScreen(navigateBack = { navController.popBackStack() })
+            StudentResultScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.ResultContrast.route) {
             ResultContrastScreen(
-                navigateBack = { navController.popBackStack() },
-                onOpenStudent = { roll -> navController.navigate("${Screen.StudentResults.route}/$roll") }
+                navigateBack = navController::popBackStackSafely,
+                onOpenStudent = { roll ->
+                    navController.navigateSafely("${Screen.StudentResults.route}/$roll")
+                }
             )
         }
         composable(Screen.ClassResult.route) {
             ClassResultScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = navController::popBackStackSafely,
                 onOpenStudentTab = { roll, tab ->
-                    navController.navigate("${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}")
+                    navController.navigateSafely(
+                        "${Screen.StudentResults.route}/$roll?startTab=${Uri.encode(tab)}"
+                    )
                 }
             )
         }
         composable(Screen.GraceMarks.route) {
-            GraceMarksScreen(navigateBack = { navController.popBackStack() })
+            GraceMarksScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Calendars.route) {
-            CalendarsScreen(navigateBack = { navController.popBackStack() })
+            CalendarsScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Syllabus.route) {
-            SyllabusScreen(navigateBack = { navController.popBackStack() })
+            SyllabusScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Channels.route) {
-            ChannelsScreen(navigateBack = { navController.popBackStack() })
+            ChannelsScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Careers.route) {
-            CareersScreen(navigateBack = { navController.popBackStack() })
+            CareersScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Help.route) {
-            HelpScreen(navigateBack = { navController.popBackStack() })
+            HelpScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Chatbot.route) {
-            ChatbotScreen(navigateBack = { navController.popBackStack() })
+            ChatbotScreen(navigateBack = navController::popBackStackSafely)
         }
     }
 }
 
 fun NavController.navigateSingleTop(route: String) {
+    if (!isReadyForNavigation() || currentDestination?.route == route) return
     navigate(route) {
         popUpTo(graph.startDestinationId) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
 }
+
+/** Prevents app-initiated navigation from racing an active transition or predictive back. */
+fun NavController.navigateSafely(route: String) {
+    if (!isReadyForNavigation()) return
+    navigate(route)
+}
+
+/** Ignores duplicate toolbar-back events while Navigation is already changing its stack. */
+fun NavController.popBackStackSafely() {
+    if (!isReadyForNavigation()) return
+    popBackStack()
+}
+
+private fun NavController.isReadyForNavigation(): Boolean =
+    currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED

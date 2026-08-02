@@ -124,7 +124,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.constraintlayout:constraintlayout-compose-android:1.1.1")
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
-    implementation("androidx.navigation:navigation-compose-android:2.9.5")
+    implementation(libs.androidx.navigation.compose)
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
