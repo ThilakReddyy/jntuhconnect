@@ -51,7 +51,7 @@ import androidx.navigation.navArgument
 import com.dhethi.jntuhconnect.presentation.components.CustomBottomBar
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.content.CalendarsScreen
-import com.dhethi.jntuhconnect.presentation.content.CareersScreen
+import com.dhethi.jntuhconnect.presentation.careers.CareersScreen
 import com.dhethi.jntuhconnect.presentation.content.ChannelsScreen
 import com.dhethi.jntuhconnect.presentation.content.HelpScreen
 import com.dhethi.jntuhconnect.presentation.content.SyllabusScreen

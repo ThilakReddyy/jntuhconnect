@@ -6,6 +6,7 @@ import com.dhethi.jntuhconnect.data.remote.dto.CreditsResponseDto
 import com.dhethi.jntuhconnect.data.remote.dto.GraceEligibilityDto
 import com.dhethi.jntuhconnect.data.remote.dto.GraceProofResponseDto
 import com.dhethi.jntuhconnect.data.remote.dto.LatestNotificationDto
+import com.dhethi.jntuhconnect.data.remote.dto.JobsResponseDto
 import com.dhethi.jntuhconnect.data.remote.dto.ResultContrastDto
 import com.dhethi.jntuhconnect.data.remote.dto.StudentAcademicResultDto
 import com.dhethi.jntuhconnect.data.remote.dto.StudentAllResultDto
@@ -17,6 +18,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -29,6 +31,17 @@ data class ResultSubscriptionRequest(
 )
 
 interface JntuhConnectApi {
+
+    @GET("jobs")
+    suspend fun getJobs(
+        @Query("page") page: Int,
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("keyword") keyword: String = "",
+        @Query("type") type: String = "",
+        @Query("companyType") companyType: String = "",
+        @Query("remote") remote: Boolean? = null,
+        @Header("X-Api-Key") apiKey: String = "jntuh-connect-android"
+    ): JobsResponseDto
 
     @POST("result-subscriptions")
     suspend fun subscribeToResultUpdates(

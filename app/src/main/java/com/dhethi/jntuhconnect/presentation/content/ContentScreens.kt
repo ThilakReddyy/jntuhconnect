@@ -30,7 +30,6 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.WorkOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -60,7 +59,6 @@ import com.dhethi.jntuhconnect.presentation.components.EmptyState
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
 import com.dhethi.jntuhconnect.presentation.components.StatusChip
-import com.dhethi.jntuhconnect.presentation.components.TonalButton
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
@@ -376,47 +374,6 @@ private fun DocumentRow(doc: ContentDoc, accent: Color, onClick: () -> Unit) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
-}
-
-// -------------------- Careers --------------------
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun CareersScreen(navigateBack: () -> Unit) {
-    val context = LocalContext.current
-    ContentScaffold("Jobs & Careers", navigateBack) {
-        items(ContentData.careers) { job ->
-            AppCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconBadge(Icons.Rounded.WorkOutline, MaterialTheme.colorScheme.tertiary)
-                    Spacer(Modifier.width(Dimens.space))
-                    Column(Modifier.weight(1f)) {
-                        Text(job.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            "${job.company} · ${job.location}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Spacer(Modifier.height(Dimens.spaceSm))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) {
-                    job.tags.forEach { StatusChip(it, MaterialTheme.colorScheme.primary) }
-                }
-                Spacer(Modifier.height(Dimens.spaceSm))
-                Text(
-                    job.about,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(Dimens.spaceMd))
-                TonalButton(
-                    text = "View & apply",
-                    onClick = { openCustomTab(context, job.applyUrl) },
-                    icon = Icons.AutoMirrored.Rounded.OpenInNew
-                )
-            }
         }
     }
 }
