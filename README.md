@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/pull-request-validation.yml"><img src="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/pull-request-validation.yml/badge.svg" alt="Code quality status"/></a>
   <a href="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/deploy-play-store.yml"><img src="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/deploy-play-store.yml/badge.svg" alt="Play Store deployment status"/></a>
   <a href="https://github.com/ThilakReddyy/jntuhconnect"><img src="https://img.shields.io/github/languages/code-size/ThilakReddyy/jntuhconnect?style=flat-square" alt="Code size"/></a>
   <a href="https://github.com/ThilakReddyy/jntuhconnect/commits/main"><img src="https://img.shields.io/github/last-commit/ThilakReddyy/jntuhconnect?style=flat-square" alt="Last commit"/></a>
