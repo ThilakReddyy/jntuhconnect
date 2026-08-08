@@ -9,11 +9,28 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/pull-request-validation.yml"><img src="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/pull-request-validation.yml/badge.svg" alt="Code quality status"/></a>
+  <a href="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/deploy-play-store.yml"><img src="https://github.com/ThilakReddyy/jntuhconnect/actions/workflows/deploy-play-store.yml/badge.svg" alt="Play Store deployment status"/></a>
+  <a href="https://github.com/ThilakReddyy/jntuhconnect"><img src="https://img.shields.io/github/languages/code-size/ThilakReddyy/jntuhconnect?style=flat-square" alt="Code size"/></a>
+  <a href="https://github.com/ThilakReddyy/jntuhconnect/commits/main"><img src="https://img.shields.io/github/last-commit/ThilakReddyy/jntuhconnect?style=flat-square" alt="Last commit"/></a>
+  <a href="https://github.com/ThilakReddyy/jntuhconnect/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ThilakReddyy/jntuhconnect?style=flat-square" alt="License"/></a>
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520version%26m%3D%2524version&style=flat-square&logo=googleplay" alt="Google Play production version"/></a>
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520downloads%26m%3D%2524shortinstalls&style=flat-square&logo=googleplay" alt="Google Play downloads"/></a>
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520updated%26m%3D%2524updated&style=flat-square&logo=googleplay" alt="Google Play last update"/></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android" alt="Platform"/>
   <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin" alt="Kotlin"/>
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpack-compose" alt="Jetpack Compose"/>
   <img src="https://img.shields.io/badge/Min%20SDK-24-green?style=for-the-badge" alt="Min SDK"/>
-  <img src="https://img.shields.io/badge/Version-1.0.49-orange?style=for-the-badge" alt="Version"/>
+  <img src="https://img.shields.io/badge/Hilt-Dependency_Injection-2196F3?style=for-the-badge&logo=google" alt="Hilt"/>
+  <img src="https://img.shields.io/badge/Retrofit-2-48B983?style=for-the-badge" alt="Retrofit 2"/>
+  <img src="https://img.shields.io/badge/Room-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="Room"/>
+  <img src="https://img.shields.io/badge/Firebase-Cloud_Messaging-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase Cloud Messaging"/>
 </p>
 
 <p align="center">
@@ -102,6 +119,18 @@ com.dhethi.jntuhconnect/
 
 ---
 
+## 📖 Documentation
+
+| Guide | Purpose |
+|---|---|
+| [Architecture](architecture.md) | Layer boundaries, result flow, local persistence, notifications, and external services |
+| [Contributing](CONTRIBUTING.md) | Setup, tests, conventions, and pull request expectations |
+| [Deployment](DEPLOYMENT.md) | Signing, versioning, Play internal-track release, verification, and rollback |
+| [Security](SECURITY.md) | Vulnerability reporting, mobile security model, student data, and signing secrets |
+| [Operations runbook](RUNBOOK.md) | Triage for builds, API results, local storage, FCM, and Play releases |
+
+---
+
 ## 🌐 API
 
 The app communicates with the backend at:
@@ -128,7 +157,7 @@ https://jntuhresults.dhethi.com/api/
 ### Prerequisites
 
 - Android Studio **Ladybug** (2024.2) or later
-- JDK 17+ (required by Android Gradle Plugin 8.x)
+- JDK 17+ (used by local builds and CI)
 - Android SDK with API Level **24** or higher
 - A `google-services.json` file (Firebase configuration)
 
@@ -210,14 +239,16 @@ accounts → Generate new private key. Keep that file outside this repository;
 | Min SDK | 24 (Android 7.0 Nougat) |
 | Target SDK | 36 |
 | Compile SDK | 36 |
-| Android Gradle Plugin | 8.13.0 |
+| Android Gradle Plugin | 9.3.0 |
 | Version | Auto-managed (see below) |
 
 ### Versioning
 `versionCode` is the single source of truth in [`app/version.properties`](app/version.properties);
 `versionName` is derived as `1.0.<versionCode>`. It bumps **automatically**:
 - **Local release builds** (`assembleRelease` / `bundleRelease`) increment `version.properties`.
-- **CI builds** derive `versionCode = 18 + GITHUB_RUN_NUMBER`, guaranteeing an ever-increasing code.
+- **CI builds** derive `versionCode = version.properties base + GITHUB_RUN_NUMBER`, guaranteeing an ever-increasing code while the base remains controlled.
+
+The current badge-update step still calculates `18 + GITHUB_RUN_NUMBER`, while `version.properties` has a different base. Treat the Play artifact/build output as authoritative until those calculations are aligned.
 
 ### Release Build
 The release build has **ProGuard/R8 minification enabled** with full NDK debug symbols for better crash reports.
@@ -239,13 +270,7 @@ Requires these GitHub repository secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve the app:
-
-1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, required validation, architectural rules, and the pull request checklist.
 
 ---
 
