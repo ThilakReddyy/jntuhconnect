@@ -152,7 +152,8 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
                 Lifecycle.Event.ON_RESUME -> {
                     resumeCheckJob?.cancel()
                     resumeCheckJob = scope.launch {
-                        delay(3_000)
+                        // Keep this comfortably behind the delayed notification onboarding prompt.
+                        delay(12_000)
                         if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.RESUMED) {
                             checkForUpdate()
                         }

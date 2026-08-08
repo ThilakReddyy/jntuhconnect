@@ -1,5 +1,7 @@
 package com.dhethi.jntuhconnect.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -7,6 +9,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -32,7 +35,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -60,14 +66,38 @@ import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
 import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
 import com.dhethi.jntuhconnect.presentation.update.InAppUpdateHandler
 import com.dhethi.jntuhconnect.presentation.updates.UpdatesScreen
+import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
+import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var appPreferences: AppPreferences
+
+    @Inject
+    lateinit var notificationRepository: NotificationRepository
+
     private var pendingNotificationDestination by mutableStateOf<String?>(null)
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            lifecycleScope.launch {
+                runCatching {
+                    notificationRepository.setResultNotificationsEnabled(true)
+                }
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +116,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         handleNotificationIntent(intent)
+        scheduleNotificationPermissionRequest()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -129,7 +160,49 @@ class MainActivity : ComponentActivity() {
         openCustomTab(this, link)
     }
 
+    private fun scheduleNotificationPermissionRequest() {
+        if (
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        lifecycleScope.launch {
+            while (isActive) {
+                lifecycle.currentStateFlow.first { it == Lifecycle.State.RESUMED }
+                delay(NOTIFICATION_PERMISSION_DELAY_MILLIS)
+                if (lifecycle.currentState != Lifecycle.State.RESUMED) continue
+
+                requestNotificationPermissionIfNeeded()
+                return@launch
+            }
+        }
+    }
+
+    private suspend fun requestNotificationPermissionIfNeeded() {
+        if (appPreferences.notificationPermissionRequested.first()) return
+
+        // Preserve a denial recorded before the app started tracking prompt state itself.
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        ) {
+            appPreferences.markNotificationPermissionRequested()
+            return
+        }
+
+        // Persist before opening system UI so process recreation cannot produce another prompt.
+        appPreferences.markNotificationPermissionRequested()
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
     private companion object {
+        const val NOTIFICATION_PERMISSION_DELAY_MILLIS = 5_000L
         const val NOTIFICATION_DATA_LINK = "link"
         const val NOTIFICATION_DATA_DESTINATION = "destination"
     }
