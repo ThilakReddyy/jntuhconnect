@@ -17,9 +17,9 @@
 </p>
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520version%26m%3D%2524version&style=flat-square&logo=googleplay" alt="Google Play production version"/></a>
-  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520downloads%26m%3D%2524shortinstalls&style=flat-square&logo=googleplay" alt="Google Play downloads"/></a>
-  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520updated%26m%3D%2524updated&style=flat-square&logo=googleplay" alt="Google Play last update"/></a>
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520version%26m%3D%2524version&style=flat-square&logo=googleplay&color=4285F4" alt="Google Play production version"/></a>
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520downloads%26m%3D%2524shortinstalls&style=flat-square&logo=googleplay&color=34A853" alt="Google Play downloads"/></a>
+  <a href="https://play.google.com/store/apps/details?id=com.dhethi.jntuhconnect"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.dhethi.jntuhconnect%26hl%3Den%26gl%3DIN%26l%3DGoogle%2520Play%2520updated%26m%3D%2524updated&style=flat-square&logo=googleplay&color=FBBC04" alt="Google Play last update"/></a>
 </p>
 
 <p align="center">
