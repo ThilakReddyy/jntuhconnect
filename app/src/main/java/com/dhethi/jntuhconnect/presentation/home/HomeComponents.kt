@@ -1,15 +1,13 @@
 package com.dhethi.jntuhconnect.presentation.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,7 +18,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -35,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -48,7 +46,6 @@ import com.dhethi.jntuhconnect.presentation.components.GradeDot
 import com.dhethi.jntuhconnect.presentation.components.normalizeRollNumber
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
-import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
 import com.dhethi.jntuhconnect.presentation.theme.ShapeMd
 
@@ -58,24 +55,33 @@ fun HeroSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBrand: Boolean = false
 ) {
+    val container = if (onBrand) Color.White.copy(alpha = 0.13f)
+    else MaterialTheme.colorScheme.surfaceContainerHigh
+    val content = if (onBrand) Color.White else MaterialTheme.colorScheme.onSurface
+    val muted = if (onBrand) Color.White.copy(alpha = 0.72f)
+    else MaterialTheme.colorScheme.onSurfaceVariant
+    val actionContainer = if (onBrand) Color.White else MaterialTheme.colorScheme.primary
+    val actionContent = if (onBrand) Color(0xFF202329) else MaterialTheme.colorScheme.onPrimary
+
     TextField(
         value = value,
         onValueChange = { onValueChange(normalizeRollNumber(it)) },
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp),
+            .heightIn(min = 64.dp),
         singleLine = true,
         shape = ShapeMd,
         textStyle = MaterialTheme.typography.bodyLarge,
-        label = { Text("Hall ticket number") },
-        placeholder = { Text("e.g. 18E51A0479") },
+        label = { Text("Hall ticket number", color = muted) },
+        placeholder = { Text("e.g. 23XX1A05XX") },
         leadingIcon = {
             Icon(
                 Icons.Rounded.Search,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = muted
             )
         },
         trailingIcon = {
@@ -83,11 +89,11 @@ fun HeroSearchBar(
                 onClick = onSubmit,
                 modifier = Modifier
                     .padding(end = Dimens.spaceSm)
-                    .size(44.dp),
+                    .size(Dimens.touchTarget),
                 shape = ShapeMd,
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = actionContainer,
+                    contentColor = actionContent
                 )
             ) {
                 Icon(
@@ -103,14 +109,17 @@ fun HeroSearchBar(
         ),
         keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedContainerColor = container,
+            unfocusedContainerColor = container,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            focusedTextColor = content,
+            unfocusedTextColor = content,
+            focusedPlaceholderColor = muted,
+            unfocusedPlaceholderColor = muted,
+            focusedLabelColor = muted,
+            unfocusedLabelColor = muted,
+            cursorColor = content
         )
     )
 }
@@ -124,38 +133,54 @@ fun QuickToolCard(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier.height(124.dp),
-        shape = ShapeMd,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = Dimens.elevationSm
+        modifier = modifier.heightIn(min = 132.dp),
+        shape = ShapeLg,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shadowElevation = 0.dp
     ) {
         Column(
             modifier = Modifier.padding(Dimens.space),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(ShapeMd)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(tool.icon, contentDescription = null, tint = tool.accent, modifier = Modifier.size(22.dp))
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(ShapeMd)
+                        .background(tool.accent.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        tool.icon,
+                        contentDescription = null,
+                        tint = tool.accent,
+                        modifier = Modifier.size(23.dp)
+                    )
+                }
+                Icon(
+                    Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.size(Dimens.iconSm)
+                )
             }
             Column {
                 Text(
                     tool.homeTitle(),
                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Default),
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     tool.homeSubtitle(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -186,7 +211,7 @@ fun RecentDocumentCard(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = ShapeMd,
+        shape = ShapeLg,
         color = MaterialTheme.colorScheme.surfaceContainer,
         shadowElevation = 0.dp
     ) {
@@ -243,6 +268,7 @@ fun RecentStudentCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val largeText = LocalDensity.current.fontScale > 1.2f
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -258,14 +284,14 @@ fun RecentStudentCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(ShapeMd)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.School,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(25.dp)
+                Text(
+                    text = student.name.initials(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             Spacer(Modifier.width(Dimens.spaceMd))
@@ -274,14 +300,30 @@ fun RecentStudentCard(
                     student.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Default),
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
+                    maxLines = if (largeText) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "${student.rollNumber}  ·  ${student.branch}",
+                    if (largeText) student.rollNumber else "${student.rollNumber}  ·  ${student.branch}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (largeText && student.branch.isNotBlank()) {
+                    Text(
+                        student.branch,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Text(
+                    student.summaryLine(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (largeText) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -291,6 +333,15 @@ fun RecentStudentCard(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+private fun StudentDetailsEntity.summaryLine(): String {
+    val semesters = "$semester ${if (semester == 1) "semester" else "semesters"}"
+    return if (backlogs > 0) {
+        "$semesters  ·  $backlogs ${if (backlogs == 1) "backlog" else "backlogs"}"
+    } else {
+        "CGPA $cgpa  ·  $semesters  ·  No backlogs"
     }
 }
 

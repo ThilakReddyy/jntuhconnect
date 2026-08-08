@@ -153,8 +153,8 @@ fun ResultContrastScreen(
                 items(contrast.semesters) { pair ->
                     if (pair.size == 2) {
                         SemesterCompareCard(
-                            label1 = p1.name.shortLabel(p1.rollNumber),
-                            label2 = p2.name.shortLabel(p2.rollNumber),
+                            label1 = p1.name.initials(),
+                            label2 = p2.name.initials(),
                             s1 = pair[0],
                             s2 = pair[1]
                         )
@@ -200,7 +200,8 @@ private fun ProfileCard(
             profile.name,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
+            minLines = 2,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
@@ -213,7 +214,8 @@ private fun ProfileCard(
         StatusChip("CGPA $cgpa", if (profile.backlogs > 0) MaterialTheme.colorScheme.error else gradeColor("A"))
         Spacer(Modifier.height(Dimens.spaceXs))
         Text(
-            "${profile.backlogs} backlog(s) · ${creditsText(profile.credits)} credits",
+            "${profile.backlogs} ${if (profile.backlogs == 1) "backlog" else "backlogs"} · " +
+                "${creditsText(profile.credits)} credits",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -280,11 +282,6 @@ private fun SgpaBar(label: String, sem: ContrastSemester) {
             textAlign = TextAlign.End
         )
     }
-}
-
-private fun String.shortLabel(fallback: String): String {
-    val first = split(" ").firstOrNull { it.isNotBlank() }
-    return first ?: fallback.takeLast(4)
 }
 
 private fun creditsText(c: Double): String =

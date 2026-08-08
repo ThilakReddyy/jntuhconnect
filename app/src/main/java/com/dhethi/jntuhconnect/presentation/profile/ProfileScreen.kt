@@ -349,7 +349,7 @@ private fun ProfileHeader() {
             fontWeight = FontWeight.Bold
         )
         Text(
-            "Preferences, saved students and support",
+            "Appearance, notifications and support",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

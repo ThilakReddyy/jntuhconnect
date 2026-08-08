@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
@@ -39,12 +41,23 @@ fun RollInputSheet(
     onSubmit: (String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     var roll by remember { mutableStateOf("") }
     var submitAttempted by remember { mutableStateOf(false) }
     val rollError = if (submitAttempted && !isValidRollNumber(roll)) {
         "Enter a valid 10-character roll number"
     } else {
         null
+    }
+
+    fun submit() {
+        submitAttempted = true
+        if (isValidRollNumber(roll)) {
+            focusManager.clearFocus(force = true)
+            keyboard?.hide()
+            onSubmit(roll)
+        }
     }
 
     ModalBottomSheet(
@@ -69,19 +82,13 @@ fun RollInputSheet(
                 value = roll,
                 onValueChange = { roll = it },
                 showSearchAction = false,
-                onSubmit = {
-                    submitAttempted = true
-                    if (isValidRollNumber(roll)) onSubmit(roll)
-                },
+                onSubmit = ::submit,
                 error = rollError
             )
             Spacer(Modifier.height(Dimens.space))
             PrimaryButton(
                 text = "Continue",
-                onClick = {
-                    submitAttempted = true
-                    if (isValidRollNumber(roll)) onSubmit(roll)
-                },
+                onClick = ::submit,
                 modifier = Modifier.fillMaxWidth()
             )
         }

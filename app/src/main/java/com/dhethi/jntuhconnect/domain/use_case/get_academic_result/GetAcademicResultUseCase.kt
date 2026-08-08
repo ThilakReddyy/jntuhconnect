@@ -19,7 +19,7 @@ class GetAcademicResultUseCase @Inject constructor(
             emit(Resource.Loading())
             val dto = repository.getAcademicResult(rollNumber)
             if (dto.details == null) {
-                emit(Resource.Error("Your Roll Number has been Queued. Please Try again Later"))
+                emit(Resource.Error("This roll number has been queued for a fresh result check."))
             } else {
                 val academicResult = dto.toStudentAcademicResult()
                 if (academicResult == null) {

@@ -1,10 +1,5 @@
 package com.dhethi.jntuhconnect.presentation.studentResult
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +26,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.Constants
 import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.ErrorScreen
+import com.dhethi.jntuhconnect.presentation.components.EmptyState
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.SegmentedTabs
 import com.dhethi.jntuhconnect.presentation.components.ShimmerList
@@ -100,15 +97,10 @@ private fun StudentResultContent(
                             }
                         }
                         item {
-                            AnimatedContent(
-                                targetState = state.currentTab,
-                                transitionSpec = {
-                                    (fadeIn(tween(200)) togetherWith fadeOut(tween(150)))
-                                },
-                                label = "tabContent"
-                            ) { tab ->
-                                TabContent(tab, state, viewModel::retryTab)
-                            }
+                            // Tab bodies can exceed the device GPU's maximum texture height.
+                            // Fading the entire body promotes it to one graphics layer (for
+                            // example 1088x16384 on the affected Realme), which aborts HWUI.
+                            TabContent(state.currentTab, state, viewModel::retryTab)
                         }
                         item { Spacer(Modifier.height(Dimens.spaceXxl)) }
 
@@ -119,7 +111,22 @@ private fun StudentResultContent(
 
             state.error.isNotEmpty() -> {
                 BackHeader(navigateBack)
-                ErrorScreen(state.error, refreshPage = { viewModel.reloadStudentResults() })
+                if (state.error.isQueuedResultError()) {
+                    EmptyState(
+                        icon = Icons.Rounded.HourglassTop,
+                        title = "Result not available yet",
+                        subtitle = "We couldn't find this roll number in the current result " +
+                            "index. It has been queued for a fresh check.",
+                        action = {
+                            PrimaryButton(
+                                text = "Check again",
+                                onClick = viewModel::reloadStudentResults
+                            )
+                        }
+                    )
+                } else {
+                    ErrorScreen(state.error, refreshPage = { viewModel.reloadStudentResults() })
+                }
             }
 
             else -> {
@@ -129,6 +136,8 @@ private fun StudentResultContent(
         }
     }
 }
+
+private fun String.isQueuedResultError(): Boolean = contains("queued", ignoreCase = true)
 
 @Composable
 private fun TabContent(

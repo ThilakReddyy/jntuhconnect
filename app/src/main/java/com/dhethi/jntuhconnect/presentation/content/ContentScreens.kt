@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -317,15 +318,23 @@ private fun Breadcrumbs(path: List<String>, onCrumb: (Int) -> Unit) {
 
 @Composable
 private fun Crumb(label: String, highlighted: Boolean, onClick: () -> Unit) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
-        color = if (highlighted) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 1,
-        modifier = Modifier.clickable(onClick = onClick)
-    )
+    Box(
+        modifier = Modifier
+            .heightIn(min = Dimens.touchTarget)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(Dimens.radiusSm))
+            .clickable(onClickLabel = "Open $label", onClick = onClick)
+            .padding(horizontal = Dimens.spaceSm),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (highlighted) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+    }
 }
 
 @Composable

@@ -1,6 +1,8 @@
 package com.dhethi.jntuhconnect
 
+import android.Manifest
 import android.content.Intent
+import android.os.Build
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasScrollAction
@@ -8,6 +10,7 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -16,6 +19,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Before
 import com.dhethi.jntuhconnect.presentation.MainActivity
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import org.junit.Rule
@@ -27,9 +31,20 @@ class AppNavigationTest {
     @get:Rule
     val compose = createAndroidComposeRule<MainActivity>()
 
+    @Before
+    fun grantNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            instrumentation.uiAutomation.grantRuntimePermission(
+                instrumentation.targetContext.packageName,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+    }
+
     @Test
     fun topLevelNavigationAndHomeValidationWork() {
-        compose.onNodeWithText("Find student results").assertIsDisplayed()
+        compose.onNodeWithText("Your academic record", substring = true).assertIsDisplayed()
         compose.onNodeWithContentDescription("Search").performClick()
         compose.onNodeWithText("Roll number cannot be empty").assertIsDisplayed()
 
@@ -43,7 +58,7 @@ class AppNavigationTest {
         compose.onNodeWithText("Dark").performClick()
         compose.onNodeWithText("System").performClick()
         compose.onNodeWithText("Home").performClick()
-        compose.onNodeWithText("Find student results").assertIsDisplayed()
+        compose.onNodeWithText("Your academic record", substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -55,7 +70,12 @@ class AppNavigationTest {
         compose.onNode(hasSetTextAction()).performTextInput("18E51A0479")
         compose.onNodeWithText("Continue").performClick()
         compose.onNodeWithText("Student Result").assertIsDisplayed()
-        pressBack()
+        compose.waitUntil(timeoutMillis = 30_000) {
+            compose.onAllNodesWithText("All Results").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("All Results").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("Back").performClick()
         compose.onNodeWithText("Profile").assertIsDisplayed()
 
         scrollExploreToAndClick("Result Contrast")

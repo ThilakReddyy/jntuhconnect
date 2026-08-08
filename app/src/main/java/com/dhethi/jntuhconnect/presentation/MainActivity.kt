@@ -1,7 +1,5 @@
 package com.dhethi.jntuhconnect.presentation
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -9,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -35,10 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -66,37 +60,14 @@ import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
 import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
 import com.dhethi.jntuhconnect.presentation.update.InAppUpdateHandler
 import com.dhethi.jntuhconnect.presentation.updates.UpdatesScreen
-import com.dhethi.jntuhconnect.data.local.preferences.AppPreferences
-import com.dhethi.jntuhconnect.data.repository.NotificationRepository
 import com.dhethi.jntuhconnect.service.MyFirebaseMessagingService
 import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var appPreferences: AppPreferences
-
-    @Inject
-    lateinit var notificationRepository: NotificationRepository
-
     private var pendingNotificationDestination by mutableStateOf<String?>(null)
-
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            lifecycleScope.launch {
-                runCatching {
-                    notificationRepository.setResultNotificationsEnabled(true)
-                }
-            }
-        }
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,7 +86,6 @@ class MainActivity : ComponentActivity() {
             }
         }
         handleNotificationIntent(intent)
-        requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -157,41 +127,6 @@ class MainActivity : ComponentActivity() {
         intent.removeExtra(MyFirebaseMessagingService.EXTRA_NOTIFICATION_LINK)
         intent.removeExtra(NOTIFICATION_DATA_LINK)
         openCustomTab(this, link)
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        lifecycleScope.launch {
-            if (appPreferences.notificationPermissionRequested.first()) {
-                return@launch
-            }
-
-            // Preserve permission decisions made before the app started tracking this itself.
-            if (hasExistingNotificationPermissionDecision()) {
-                appPreferences.markNotificationPermissionRequested()
-                return@launch
-            }
-
-            // Persist before launching so a denial or process recreation cannot re-prompt.
-            appPreferences.markNotificationPermissionRequested()
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-
-    private fun hasExistingNotificationPermissionDecision(): Boolean {
-        return ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS
-        )
     }
 
     private companion object {

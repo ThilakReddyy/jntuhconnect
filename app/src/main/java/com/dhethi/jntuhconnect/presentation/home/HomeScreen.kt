@@ -1,5 +1,6 @@
 package com.dhethi.jntuhconnect.presentation.home
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,20 +13,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,9 +39,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -45,7 +53,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.core.view.WindowCompat
 import com.dhethi.jntuhconnect.R
+import com.dhethi.jntuhconnect.presentation.Screen
 import com.dhethi.jntuhconnect.presentation.components.RollInputSheet
 import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
 import com.dhethi.jntuhconnect.presentation.components.isValidRollNumber
@@ -54,7 +64,9 @@ import com.dhethi.jntuhconnect.presentation.explore.ToolAction
 import com.dhethi.jntuhconnect.presentation.explore.ToolItem
 import com.dhethi.jntuhconnect.presentation.explore.homeQuickTools
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
+import com.dhethi.jntuhconnect.presentation.theme.LocalJntuhDarkTheme
 import com.dhethi.jntuhconnect.presentation.theme.ShapeLg
+import com.dhethi.jntuhconnect.presentation.theme.brandGradient
 
 @Composable
 fun HomeScreen(
@@ -65,9 +77,11 @@ fun HomeScreen(
 ) {
     val state = viewModel.state.value
     val context = LocalContext.current
+    val largeText = LocalDensity.current.fontScale > 1.2f
     val keyboard = LocalSoftwareKeyboardController.current
     var roll by rememberSaveable { mutableStateOf("") }
     var searchAttempted by rememberSaveable { mutableStateOf(false) }
+    var showClearSearchesConfirmation by rememberSaveable { mutableStateOf(false) }
     val rollError = when {
         !searchAttempted -> null
         roll.isBlank() -> stringResource(R.string.error_roll_empty)
@@ -83,6 +97,34 @@ fun HomeScreen(
             onSubmit = { submittedRoll ->
                 pendingTab = null
                 onOpenStudentTab(submittedRoll, tab)
+            }
+        )
+    }
+
+    if (showClearSearchesConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearSearchesConfirmation = false },
+            title = { Text("Clear recent searches?") },
+            text = {
+                Text(
+                    "This removes every saved roll number from this device and turns off " +
+                        "result alerts for them."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearSearchesConfirmation = false
+                        viewModel.deleteAllStudents()
+                    }
+                ) {
+                    Text("Clear all", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearSearchesConfirmation = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }
@@ -109,6 +151,21 @@ fun HomeScreen(
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
         }
     }
+    val darkTheme = LocalJntuhDarkTheme.current
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        val window = (view.context as Activity).window
+        SideEffect {
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
+                !darkTheme && heroScrolled
+        }
+        DisposableEffect(window, view, darkTheme) {
+            onDispose {
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
+                    !darkTheme
+            }
+        }
+    }
     val homeBackground = MaterialTheme.colorScheme.background
     Box(
         Modifier
@@ -131,6 +188,33 @@ fun HomeScreen(
                 )
             }
 
+            if (state.students.isNotEmpty()) {
+                item {
+                    HomeSectionHeader(
+                        title = "Continue where you left off",
+                        subtitle = "Your latest result searches",
+                        actionText = "Clear all",
+                        onActionClick = { showClearSearchesConfirmation = true },
+                        modifier = Modifier.padding(
+                            start = Dimens.space,
+                            end = Dimens.space,
+                            top = Dimens.spaceXl,
+                            bottom = Dimens.spaceMd
+                        )
+                    )
+                }
+                items(state.students.take(3), key = { it.rollNumber }) { student ->
+                    RecentStudentCard(
+                        student = student,
+                        onClick = { onOpenStudent(student.rollNumber) },
+                        modifier = Modifier.padding(
+                            horizontal = Dimens.space,
+                            vertical = Dimens.spaceXs
+                        )
+                    )
+                }
+            }
+
             item {
                 HomeSectionHeader(
                     title = "Quick tools",
@@ -144,25 +228,18 @@ fun HomeScreen(
                 )
             }
             item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = Dimens.space),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
-                ) {
-                    items(homeQuickTools, key = { it.title }) { tool ->
-                        QuickToolCard(
-                            tool = tool,
-                            onClick = { onTool(tool) },
-                            modifier = Modifier.width(168.dp)
-                        )
-                    }
-                }
+                QuickToolsGrid(
+                    tools = homeQuickTools,
+                    largeText = largeText,
+                    onTool = ::onTool
+                )
             }
 
-            if (state.latestUpdates.isNotEmpty()) {
+            if (state.students.isEmpty()) {
                 item {
                     HomeSectionHeader(
-                        title = "Latest updates",
-                        subtitle = "New from JNTUH",
+                        title = "Recent searches",
+                        subtitle = "Roll numbers opened recently",
                         modifier = Modifier.padding(
                             start = Dimens.space,
                             end = Dimens.space,
@@ -171,7 +248,33 @@ fun HomeScreen(
                         )
                     )
                 }
-                items(state.latestUpdates) { update ->
+                item {
+                    RecentEmpty(
+                        title = "No recent roll numbers",
+                        subtitle = "Search a hall ticket number above to keep it close at hand."
+                    )
+                }
+            }
+
+            if (state.latestUpdates.isNotEmpty()) {
+                item {
+                    HomeSectionHeader(
+                        title = "Latest updates",
+                        subtitle = "New from JNTUH",
+                        actionText = "View all",
+                        onActionClick = { onOpenRoute(Screen.Updates.route) },
+                        modifier = Modifier.padding(
+                            start = Dimens.space,
+                            end = Dimens.space,
+                            top = Dimens.spaceXl,
+                            bottom = Dimens.spaceMd
+                        )
+                    )
+                }
+                items(
+                    items = state.latestUpdates,
+                    key = { update -> "${update.link}:${update.releaseDate}" }
+                ) { update ->
                     UpdatePreviewCard(
                         update = update,
                         onClick = { openCustomTab(context, update.link) },
@@ -213,39 +316,6 @@ fun HomeScreen(
                 }
             }
 
-            item {
-                HomeSectionHeader(
-                    title = "Recent searches",
-                    subtitle = "Roll numbers opened recently",
-                    actionText = if (state.students.isNotEmpty()) "Clear" else null,
-                    onActionClick = viewModel::deleteAllStudents,
-                    modifier = Modifier.padding(
-                        start = Dimens.space,
-                        end = Dimens.space,
-                        top = Dimens.spaceXl,
-                        bottom = Dimens.spaceMd
-                    )
-                )
-            }
-            if (state.students.isEmpty()) {
-                item {
-                    RecentEmpty(
-                        title = "No recent roll numbers",
-                        subtitle = "Search a hall ticket number above to keep it close at hand."
-                    )
-                }
-            } else {
-                items(state.students.take(3), key = { it.rollNumber }) { student ->
-                    RecentStudentCard(
-                        student = student,
-                        onClick = { onOpenStudent(student.rollNumber) },
-                        modifier = Modifier.padding(
-                            horizontal = Dimens.space,
-                            vertical = Dimens.spaceXs
-                        )
-                    )
-                }
-            }
         }
 
         if (heroScrolled) {
@@ -261,12 +331,35 @@ private fun HomeHero(
     onSubmit: () -> Unit,
     error: String?
 ) {
+    val dark = LocalJntuhDarkTheme.current
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .clip(
+                RoundedCornerShape(
+                    bottomStart = Dimens.radiusXl,
+                    bottomEnd = Dimens.radiusXl
+                )
+            )
+            .background(brandGradient(dark))
     ) {
         val compact = maxWidth < 360.dp
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 52.dp, y = (-54).dp)
+                .size(176.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.035f))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-42).dp, y = 58.dp)
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.025f))
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -278,7 +371,7 @@ private fun HomeHero(
                 Surface(
                     modifier = Modifier.size(if (compact) 40.dp else 44.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    color = Color.White.copy(alpha = 0.14f)
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_launcher),
@@ -289,7 +382,7 @@ private fun HomeHero(
                 Spacer(Modifier.width(Dimens.spaceMd))
                 Text(
                     "JNTUH Connect",
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontFamily = FontFamily.Default
                     ),
@@ -299,34 +392,72 @@ private fun HomeHero(
 
             Spacer(Modifier.height(if (compact) Dimens.spaceXl else Dimens.spaceXxl))
             Text(
-                "Find student results",
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.Default,
-                    fontSize = if (compact) 28.sp else 32.sp,
-                    lineHeight = if (compact) 34.sp else 40.sp
+                "Your academic record,\nright at hand",
+                color = Color.White,
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontSize = if (compact) 29.sp else 33.sp,
+                    lineHeight = if (compact) 35.sp else 40.sp
                 ),
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(Dimens.spaceSm))
             Text(
-                "Enter your hall ticket number to see results, backlogs, and credits.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                "Results, backlogs and credit progress in one place.",
+                color = Color.White.copy(alpha = 0.78f),
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(Modifier.height(Dimens.spaceLg))
             HeroSearchBar(
                 value = rollValue,
                 onValueChange = onRollChange,
-                onSubmit = onSubmit
+                onSubmit = onSubmit,
+                onBrand = true
             )
             if (error != null) {
                 Spacer(Modifier.height(Dimens.spaceSm))
                 Text(
                     text = error,
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFFFFB4AB)
+                    color = Color(0xFFFFDAD6)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickToolsGrid(
+    tools: List<ToolItem>,
+    largeText: Boolean,
+    onTool: (ToolItem) -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = Dimens.space),
+        verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
+    ) {
+        if (largeText) {
+            tools.forEach { tool ->
+                QuickToolCard(
+                    tool = tool,
+                    onClick = { onTool(tool) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        } else {
+            tools.chunked(2).forEach { rowTools ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
+                ) {
+                    rowTools.forEach { tool ->
+                        QuickToolCard(
+                            tool = tool,
+                            onClick = { onTool(tool) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (rowTools.size == 1) Spacer(Modifier.weight(1f))
+                }
             }
         }
     }

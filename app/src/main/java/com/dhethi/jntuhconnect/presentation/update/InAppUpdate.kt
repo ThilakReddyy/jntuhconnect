@@ -25,6 +25,8 @@ import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val TAG = "InAppUpdate"
@@ -32,10 +34,10 @@ private const val TAG = "InAppUpdate"
 /**
  * Drives Google Play's flexible in-app update flow.
  *
- * When a newer version is live on the Play Store, this triggers Play's download consent
- * sheet. The update downloads in the background while the app stays usable; once it's ready
- * a snackbar invites the user to restart and install. Only fires for Play-installed builds —
- * debug/sideloaded installs are silently skipped by the Play library.
+ * When a newer version is live on the Play Store, this offers an in-app action. Play's download
+ * consent sheet opens only after the user taps it. The update downloads in the background while
+ * the app stays usable; once ready, a snackbar invites the user to restart and install. Only
+ * fires for Play-installed builds — debug/sideloaded installs are silently skipped.
  *
  * Mount once, high in the tree, and pass the [SnackbarHostState] used by the app's Scaffold.
  */
@@ -44,8 +46,10 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val appUpdateManager = remember { AppUpdateManagerFactory.create(context.applicationContext) }
+    val lifecycleOwner = LocalLifecycleOwner.current
     var updateCheckInFlight by remember { mutableStateOf(false) }
     var updateFlowRequested by rememberSaveable { mutableStateOf(false) }
+    var updatePromptShown by rememberSaveable { mutableStateOf(false) }
     var restartPromptVisible by remember { mutableStateOf(false) }
 
     val updateLauncher = rememberLauncherForActivityResult(
@@ -84,19 +88,39 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
         onDispose { appUpdateManager.unregisterListener(listener) }
     }
 
-    // Check on every resume: kick off a flexible update, or re-prompt if one already
-    // downloaded while the app was in the background.
-    val lifecycleOwner = LocalLifecycleOwner.current
+    suspend fun promptUpdate(info: com.google.android.play.core.appupdate.AppUpdateInfo) {
+        val action = snackbarHostState.showSnackbar(
+            message = "A new version is available.",
+            actionLabel = "Update",
+            duration = SnackbarDuration.Long
+        )
+        if (
+            action != SnackbarResult.ActionPerformed ||
+            lifecycleOwner.lifecycle.currentState != Lifecycle.State.RESUMED
+        ) {
+            return
+        }
+
+        updateFlowRequested = true
+        try {
+            if (!appUpdateManager.startFlexibleUpdate(info, updateLauncher)) {
+                updateFlowRequested = false
+                Log.w(TAG, "Play declined to start the flexible update flow")
+            }
+        } catch (error: IllegalStateException) {
+            updateFlowRequested = false
+            Log.w(TAG, "Unable to start flexible update", error)
+        }
+    }
+
+    // ColorOS devices can report an input ANR when a system-owned update window races the app's
+    // first focused frame. Delay the check and only open Play UI after an explicit user action.
     DisposableEffect(lifecycleOwner, appUpdateManager) {
         var effectActive = true
-        val observer = LifecycleEventObserver { _, event ->
-            if (
-                event != Lifecycle.Event.ON_RESUME ||
-                updateCheckInFlight ||
-                updateFlowRequested
-            ) {
-                return@LifecycleEventObserver
-            }
+        var resumeCheckJob: Job? = null
+
+        fun checkForUpdate() {
+            if (updateCheckInFlight || updateFlowRequested || updatePromptShown) return
             updateCheckInFlight = true
             appUpdateManager.appUpdateInfo
                 .addOnSuccessListener { info ->
@@ -112,21 +136,8 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
 
                         info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
                             info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) -> {
-                            // ON_RESUME may be dispatched again while Play's UI is opening.
-                            // Keep this set after the result too, so dismissing Play's UI does not
-                            // immediately open it again. A new Activity session may retry.
-                            updateFlowRequested = true
-                            try {
-                                if (!appUpdateManager.startFlexibleUpdate(info, updateLauncher)) {
-                                    updateFlowRequested = false
-                                    Log.w(TAG, "Play declined to start the flexible update flow")
-                                }
-                            } catch (error: IllegalStateException) {
-                                updateFlowRequested = false
-                                // The Activity Result launcher may have been unregistered between
-                                // the asynchronous info callback and this launch attempt.
-                                Log.w(TAG, "Unable to start flexible update", error)
-                            }
+                            updatePromptShown = true
+                            scope.launch { promptUpdate(info) }
                         }
                     }
                 }
@@ -135,9 +146,31 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
                     if (effectActive) updateCheckInFlight = false
                 }
         }
+
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    resumeCheckJob?.cancel()
+                    resumeCheckJob = scope.launch {
+                        delay(3_000)
+                        if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.RESUMED) {
+                            checkForUpdate()
+                        }
+                    }
+                }
+
+                Lifecycle.Event.ON_PAUSE -> {
+                    resumeCheckJob?.cancel()
+                    resumeCheckJob = null
+                }
+
+                else -> Unit
+            }
+        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             effectActive = false
+            resumeCheckJob?.cancel()
             updateCheckInFlight = false
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
