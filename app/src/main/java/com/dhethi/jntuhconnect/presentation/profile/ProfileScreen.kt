@@ -620,12 +620,12 @@ private fun DhethiIntroRow() {
         Spacer(Modifier.width(Dimens.space))
         Column(Modifier.weight(1f)) {
             Text(
-                "You're using something we built.",
+                "Made by Dhethi",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "JNTUH Connect is a Dhethi product — web, API, Android, iOS. Same team can build yours.",
+                "An independent studio behind JNTUH Connect — web, API, Android, iOS. Have an idea, or need something built?",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

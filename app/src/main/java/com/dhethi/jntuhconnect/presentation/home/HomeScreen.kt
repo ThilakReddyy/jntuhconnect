@@ -321,7 +321,7 @@ fun HomeScreen(
 
             item {
                 DhethiFooterCard(
-                    onClick = { onOpenRoute(Screen.Profile.route) },
+                    onClick = { openCustomTab(context, "https://dhethi.com/") },
                     modifier = Modifier.padding(
                         horizontal = Dimens.space,
                         vertical = Dimens.spaceLg
