@@ -27,13 +27,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Devices
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Share
@@ -240,6 +243,53 @@ fun ProfileScreen(
                     ) {
                         openCustomTab(context, social.url)
                     }
+                }
+            }
+        }
+
+        // About Dhethi
+        item {
+            SectionHeader(
+                "About Dhethi",
+                modifier = Modifier.padding(horizontal = Dimens.space, vertical = Dimens.spaceMd)
+            )
+        }
+        item {
+            AppCard(
+                modifier = Modifier.padding(horizontal = Dimens.space),
+                contentPadding = PaddingValues(vertical = Dimens.spaceXs)
+            ) {
+                DhethiIntroRow()
+                SettingsDivider()
+                LinkRow(
+                    icon = Icons.Rounded.Email,
+                    title = "Have an idea? Let's build it",
+                    subtitle = "Collab on real, useful software",
+                    action = LinkAction.EXTERNAL
+                ) {
+                    openMailto(
+                        context,
+                        email = "thilakreddy@dhethi.com",
+                        subject = "Hi Dhethi — I have an idea"
+                    )
+                }
+                SettingsDivider()
+                LinkRow(
+                    icon = Icons.AutoMirrored.Rounded.Chat,
+                    title = "Need something built?",
+                    subtitle = "DM us on Instagram — fastest reply",
+                    action = LinkAction.EXTERNAL
+                ) {
+                    openCustomTab(context, "https://www.instagram.com/__thilak_reddy__/")
+                }
+                SettingsDivider()
+                LinkRow(
+                    icon = Icons.Rounded.Language,
+                    title = "Visit dhethi.com",
+                    subtitle = "See our other work",
+                    action = LinkAction.EXTERNAL
+                ) {
+                    openCustomTab(context, "https://dhethi.com/")
                 }
             }
         }
@@ -531,4 +581,54 @@ private fun shareApp(context: android.content.Context) {
         )
     }
     context.startActivity(Intent.createChooser(intent, "Share JNTUH Connect"))
+}
+
+private fun openMailto(
+    context: android.content.Context,
+    email: String,
+    subject: String
+) {
+    val uri = android.net.Uri.parse(
+        "mailto:$email?subject=" + android.net.Uri.encode(subject)
+    )
+    val intent = Intent(Intent.ACTION_SENDTO, uri)
+    runCatching { context.startActivity(intent) }
+}
+
+@Composable
+private fun DhethiIntroRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimens.spaceMd, vertical = Dimens.spaceMd),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(Dimens.icon)
+                .clip(ShapeMd)
+                .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "d.",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        Spacer(Modifier.width(Dimens.space))
+        Column(Modifier.weight(1f)) {
+            Text(
+                "You're using something we built.",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "JNTUH Connect is a Dhethi product — web, API, Android, iOS. Same team can build yours.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
