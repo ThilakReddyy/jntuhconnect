@@ -21,6 +21,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Query
 
@@ -28,6 +29,20 @@ data class ResultSubscriptionRequest(
     @SerializedName("deviceId") val deviceId: String,
     @SerializedName("deviceToken") val deviceToken: String,
     @SerializedName("rollNumber") val rollNumber: String
+)
+
+data class NotificationPreferencesRequest(
+    @SerializedName("deviceId") val deviceId: String,
+    @SerializedName("platform") val platform: String = "android",
+    @SerializedName("degrees") val degrees: List<String>,
+    @SerializedName("regulations") val regulations: List<String>
+)
+
+data class NotificationPreferencesResponse(
+    @SerializedName("deviceId") val deviceId: String? = null,
+    @SerializedName("degrees") val degrees: List<String> = emptyList(),
+    @SerializedName("regulations") val regulations: List<String> = emptyList(),
+    @SerializedName("topics") val topics: List<String> = emptyList()
 )
 
 interface JntuhConnectApi {
@@ -52,6 +67,24 @@ interface JntuhConnectApi {
     suspend fun deleteResultSubscriptions(
         @Query("deviceId") deviceId: String
     ): Response<Unit>
+
+    @PUT("notification-preferences")
+    suspend fun saveNotificationPreferences(
+        @Body request: NotificationPreferencesRequest,
+        @Header("X-Api-Key") apiKey: String = "jntuh-connect-android"
+    ): Response<NotificationPreferencesResponse>
+
+    @GET("notification-preferences")
+    suspend fun getNotificationPreferences(
+        @Query("deviceId") deviceId: String,
+        @Header("X-Api-Key") apiKey: String = "jntuh-connect-android"
+    ): Response<NotificationPreferencesResponse>
+
+    @DELETE("notification-preferences")
+    suspend fun deleteNotificationPreferences(
+        @Query("deviceId") deviceId: String,
+        @Header("X-Api-Key") apiKey: String = "jntuh-connect-android"
+    ): Response<NotificationPreferencesResponse>
 
     @GET("getAllResult")
     suspend fun getAllResults(

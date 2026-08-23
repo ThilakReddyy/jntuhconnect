@@ -1,6 +1,5 @@
 package com.dhethi.jntuhconnect.presentation.update
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarDuration
@@ -28,6 +27,7 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 private const val TAG = "InAppUpdate"
 
@@ -56,7 +56,7 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         // User dismissed or the flow failed — nothing to do, we'll ask again next launch.
-        Log.d(TAG, "Update flow result: ${result.resultCode}")
+        Timber.tag(TAG).d("Update flow result: ${result.resultCode}")
     }
 
     suspend fun promptRestart() {
@@ -70,7 +70,7 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
             )
             if (action == SnackbarResult.ActionPerformed) {
                 appUpdateManager.completeUpdate()
-                    .addOnFailureListener { Log.w(TAG, "completeUpdate failed", it) }
+                    .addOnFailureListener { Timber.tag(TAG).w(it, "completeUpdate failed") }
             }
         } finally {
             restartPromptVisible = false
@@ -105,11 +105,11 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
         try {
             if (!appUpdateManager.startFlexibleUpdate(info, updateLauncher)) {
                 updateFlowRequested = false
-                Log.w(TAG, "Play declined to start the flexible update flow")
+                Timber.tag(TAG).w("Play declined to start the flexible update flow")
             }
         } catch (error: IllegalStateException) {
             updateFlowRequested = false
-            Log.w(TAG, "Unable to start flexible update", error)
+            Timber.tag(TAG).w(error, "Unable to start flexible update")
         }
     }
 
@@ -141,7 +141,7 @@ fun InAppUpdateHandler(snackbarHostState: SnackbarHostState) {
                         }
                     }
                 }
-                .addOnFailureListener { Log.d(TAG, "appUpdateInfo failed", it) }
+                .addOnFailureListener { Timber.tag(TAG).d(it, "appUpdateInfo failed") }
                 .addOnCompleteListener {
                     if (effectActive) updateCheckInFlight = false
                 }

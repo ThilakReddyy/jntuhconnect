@@ -108,6 +108,12 @@ Firebase provides:
 
 The repository restores topic state and re-registers subscribed rolls after token rotation. Notification permission is requested at runtime on Android 13+.
 
+## Observability
+
+`presentation/JntuhConnect.kt` (the `Application` class) plants a Timber tree at startup: `Timber.DebugTree()` in debug builds (logcat only), `com.dhethi.jntuhconnect.telemetry.CrashlyticsTree` in release — which forwards only `WARN`/`ERROR` log lines to Firebase Crashlytics (`FirebaseCrashlytics.log()` + `recordException()` when a `Throwable` is attached); `DEBUG`/`INFO`/`VERBOSE` never leave the device in release. Crashlytics itself installs its own uncaught-exception handler automatically — nothing else hooks `Thread.setDefaultUncaughtExceptionHandler`. Release builds upload the mapping file and the NDK symbols the `debugSymbolLevel = "FULL"` setting already produces (`app/build.gradle.kts`'s `configure<CrashlyticsExtension>` block), so native crashes symbolicate in the Crashlytics console.
+
+`com.dhethi.jntuhconnect.telemetry.Telemetry.kt` also holds `AppAnalytics`, a typed wrapper around `FirebaseAnalytics` (injected via Hilt, see `di/AppModule.kt`) with an explicit event-name allowlist (`result_lookup_success/failure`, `push_subscription_success/failure`, `notification_opened`, `tool_used`) so an unlisted event name fails fast rather than silently shipping an ad hoc one. Both the Crashlytics log-forwarding path and `AppAnalytics.logEvent` redact roll-number-shaped 10-character tokens and a denylist of keys (`fcm_token`, `hall_ticket`, `marks`, ...) before anything leaves the device — this package lives outside `presentation/` specifically so `data`/`domain` layers (e.g. `NotificationRepository`) can depend on it without inverting the architecture's `data → domain → presentation` direction.
+
 ## Build and release
 
 Gradle version catalogs pin plugins/libraries. Release builds enable R8/resource shrinking and full native debug symbols. `app/version.properties` holds the base version code:
@@ -127,3 +133,4 @@ Every push to `main` triggers the signed Play internal-track release workflow, f
 - Handle 202/pending, rate-limit, offline, timeout, decoding, and empty states explicitly.
 - Compose screens should consume state and events rather than call Retrofit directly.
 - Keep signing/version automation aligned with the Play workflow.
+- Log via `Timber` (not raw `android.util.Log`); never put a roll number, FCM token, or academic payload directly into a log/analytics call — route it through `telemetry.scrubText`/`scrubPII` or omit it.

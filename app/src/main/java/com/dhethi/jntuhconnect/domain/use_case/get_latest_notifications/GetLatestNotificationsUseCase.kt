@@ -1,6 +1,5 @@
 package com.dhethi.jntuhconnect.domain.use_case.get_latest_notifications
 
-import android.util.Log
 import com.dhethi.jntuhconnect.common.Resource
 import com.dhethi.jntuhconnect.data.remote.dto.toLatestNotification
 import com.dhethi.jntuhconnect.domain.model.LatestNotification
@@ -9,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okio.IOException
 import retrofit2.HttpException
+import timber.log.Timber
 import javax.inject.Inject
 
 class GetLatestNotificationsUseCase @Inject constructor(
@@ -35,13 +35,13 @@ class GetLatestNotificationsUseCase @Inject constructor(
                 emit(Resource.Success(latestNotifications))
 
             } catch (e: HttpException) {
-                Log.e(TAG, "HttpException: ${e.localizedMessage}", e)
+                Timber.tag(TAG).e(e, "HttpException: ${e.localizedMessage}")
                 emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
             } catch (e: IOException) {
-                Log.e(TAG, "IOException: ${e.localizedMessage}", e)
+                Timber.tag(TAG).e(e, "IOException: ${e.localizedMessage}")
                 emit(Resource.Error("Couldn't reach server. Check your internet connection"))
             } catch (e: Exception) {
-                Log.e(TAG, "Unexpected exception: ${e.localizedMessage}", e)
+                Timber.tag(TAG).e(e, "Unexpected exception: ${e.localizedMessage}")
                 emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
             }
         }

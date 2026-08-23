@@ -39,7 +39,7 @@ Handle backend 202/pending, 429/rate limit, offline, timeout, decoding, and erro
 - Room stores student summaries only.
 - DataStore stores theme/notification preferences, random device ID, subscribed rolls, and recent document shortcuts.
 - Do not persist full results without a reviewed privacy/migration change.
-- Avoid logging FCM tokens, academic payloads, signing values, or service credentials.
+- Avoid logging FCM tokens, academic payloads, signing values, or service credentials. Log via `Timber` (see `telemetry/Telemetry.kt`), not raw `android.util.Log` — in release builds, only `WARN`/`ERROR` reach Crashlytics, scrubbed of roll-number-shaped tokens and a denylist of keys.
 - Keep Firebase Admin/Play/signing credentials outside the repository.
 
 ## Change rules

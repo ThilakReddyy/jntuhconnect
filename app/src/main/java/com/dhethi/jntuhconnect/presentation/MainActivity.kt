@@ -61,6 +61,7 @@ import com.dhethi.jntuhconnect.presentation.contrast.ResultContrastScreen
 import com.dhethi.jntuhconnect.presentation.explore.ExploreScreen
 import com.dhethi.jntuhconnect.presentation.gracemarks.GraceMarksScreen
 import com.dhethi.jntuhconnect.presentation.home.HomeScreen
+import com.dhethi.jntuhconnect.presentation.notificationpreferences.NotificationPreferencesScreen
 import com.dhethi.jntuhconnect.presentation.profile.ProfileScreen
 import com.dhethi.jntuhconnect.presentation.studentResult.StudentResultScreen
 import com.dhethi.jntuhconnect.presentation.theme.JntuhConnectTheme
@@ -117,6 +118,9 @@ class MainActivity : ComponentActivity() {
         }
         handleNotificationIntent(intent)
         scheduleNotificationPermissionRequest()
+        lifecycleScope.launch {
+            runCatching { notificationRepository.restoreResultNotificationSubscription() }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -357,6 +361,9 @@ private fun AppNavHost(
         }
         composable(Screen.Channels.route) {
             ChannelsScreen(navigateBack = navController::popBackStackSafely)
+        }
+        composable(Screen.NotificationPreferences.route) {
+            NotificationPreferencesScreen(navigateBack = navController::popBackStackSafely)
         }
         composable(Screen.Careers.route) {
             CareersScreen(navigateBack = navController::popBackStackSafely)

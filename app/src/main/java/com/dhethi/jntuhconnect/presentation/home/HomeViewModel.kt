@@ -1,6 +1,5 @@
 package com.dhethi.jntuhconnect.presentation.home
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -19,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -87,10 +87,9 @@ class HomeViewModel @Inject constructor(
             deleteAllStudentDetailsUseCase()
             runCatching { notificationRepository.deleteAllRollSubscriptions() }
                 .onFailure { error ->
-                    Log.e(
-                        "ResultSubscription",
-                        "Failed to delete backend subscriptions after clearing local students",
-                        error
+                    Timber.tag("ResultSubscription").e(
+                        error,
+                        "Failed to delete backend subscriptions after clearing local students"
                     )
                 }
         }

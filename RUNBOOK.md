@@ -13,6 +13,13 @@ Determine whether the issue affects:
 
 Collect Android version, app version, build type, device model, network state, and sanitized logs. Never request a user's full academic payload or FCM token.
 
+## Crashes and release health
+
+- Check the Firebase Crashlytics console first — release-build crashes/ANRs report there automatically (`presentation/JntuhConnect.kt` enables collection when `!BuildConfig.DEBUG`), with mapping/NDK symbols already uploaded (`app/build.gradle.kts`'s Crashlytics block), so stack traces should already be symbolicated.
+- Only `WARN`/`ERROR` Timber calls reach Crashlytics in release (`telemetry/CrashlyticsTree`); `DEBUG`/`INFO` are logcat-only and won't appear there even with a device attached.
+- Check the Firebase Analytics DebugView for `result_lookup_*`/`push_subscription_*`/`tool_used` events when diagnosing a feature-usage or funnel question rather than a crash.
+- There is no separate crash-free-rate gate before Play promotion (`deploy-play-store.yml` pushes straight to the internal track) — watch the Crashlytics console manually after a release before wider rollout.
+
 ## Debug build cannot reach local backend
 
 - Emulator backend URL is `http://10.0.2.2:8000/api/`.

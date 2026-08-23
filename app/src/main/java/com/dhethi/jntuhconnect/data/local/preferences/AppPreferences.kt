@@ -36,6 +36,9 @@ class AppPreferences @Inject constructor(
         val RECENT_DOCUMENTS = stringPreferencesKey("recent_documents")
         val RESULT_NOTIFICATION_DEVICE_ID = stringPreferencesKey("result_notification_device_id")
         val RESULT_NOTIFICATION_ROLLS = stringSetPreferencesKey("result_notification_rolls")
+        val NOTIFICATION_PREF_DEGREES = stringSetPreferencesKey("notification_pref_degrees")
+        val NOTIFICATION_PREF_REGULATIONS = stringSetPreferencesKey("notification_pref_regulations")
+        val NOTIFICATION_TOPICS = stringSetPreferencesKey("notification_topics")
     }
 
     private val gson = Gson()
@@ -49,6 +52,12 @@ class AppPreferences @Inject constructor(
 
     val notificationPermissionRequested: Flow<Boolean> = context.dataStore.data
         .map { it[Keys.NOTIFICATION_PERMISSION_REQUESTED] ?: false }
+
+    val notificationPrefDegrees: Flow<Set<String>> = context.dataStore.data
+        .map { it[Keys.NOTIFICATION_PREF_DEGREES].orEmpty() }
+
+    val notificationPrefRegulations: Flow<Set<String>> = context.dataStore.data
+        .map { it[Keys.NOTIFICATION_PREF_REGULATIONS].orEmpty() }
 
     val recentDocuments: Flow<List<RecentDocument>> = context.dataStore.data.map { preferences ->
         decodeRecentDocuments(preferences[Keys.RECENT_DOCUMENTS])
@@ -96,6 +105,29 @@ class AppPreferences @Inject constructor(
 
     suspend fun clearResultRollSubscriptions() {
         context.dataStore.edit { it.remove(Keys.RESULT_NOTIFICATION_ROLLS) }
+    }
+
+    suspend fun subscribedNotificationTopics(): Set<String> =
+        context.dataStore.data.first()[Keys.NOTIFICATION_TOPICS].orEmpty()
+
+    suspend fun setNotificationPreference(
+        degrees: Set<String>,
+        regulations: Set<String>,
+        topics: Set<String>
+    ) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.NOTIFICATION_PREF_DEGREES] = degrees
+            preferences[Keys.NOTIFICATION_PREF_REGULATIONS] = regulations
+            preferences[Keys.NOTIFICATION_TOPICS] = topics
+        }
+    }
+
+    suspend fun clearNotificationPreference() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(Keys.NOTIFICATION_PREF_DEGREES)
+            preferences.remove(Keys.NOTIFICATION_PREF_REGULATIONS)
+            preferences.remove(Keys.NOTIFICATION_TOPICS)
+        }
     }
 
     suspend fun recordRecentDocument(document: RecentDocument) {

@@ -18,6 +18,7 @@ sealed class Screen(
     data object Calendars : Screen("calendars", "calendars")
     data object Syllabus : Screen("syllabus", "syllabus")
     data object Channels : Screen("channels", "channels")
+    data object NotificationPreferences : Screen("notificationPreferences", "notification_preferences")
     data object Careers : Screen("careers", "careers")
     data object Help : Screen("help", "help")
     data object Chatbot : Screen("chatbot", "chatbot")
@@ -36,6 +37,7 @@ sealed class Screen(
                 Calendars,
                 Syllabus,
                 Channels,
+                NotificationPreferences,
                 Careers,
                 Help,
                 Chatbot

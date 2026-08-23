@@ -1,6 +1,5 @@
 package com.dhethi.jntuhconnect.presentation.studentResult
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -17,11 +16,14 @@ import com.dhethi.jntuhconnect.domain.use_case.get_all_results.GetAllResultsUseC
 import com.dhethi.jntuhconnect.domain.use_case.get_backlog_results.GetBacklogResultUseCase
 import com.dhethi.jntuhconnect.domain.use_case.get_credits.GetCreditsUseCase
 import com.dhethi.jntuhconnect.domain.use_case.save_student_details.SaveStudentDetailsUseCase
+import com.dhethi.jntuhconnect.telemetry.AppAnalytics
+import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +34,7 @@ class StudentResultViewModel @Inject constructor(
     private val getCreditsUseCase: GetCreditsUseCase,
     private val saveStudentDetailsUseCase: SaveStudentDetailsUseCase,
     private val notificationRepository: NotificationRepository,
+    private val analytics: FirebaseAnalytics,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -99,10 +102,17 @@ class StudentResultViewModel @Inject constructor(
         academicJob = getAcademicResultUseCase(rollNumber).onEach { result ->
             when (result) {
                 is Resource.Loading -> _state.value = _state.value.copy(isLoading = true, error = "")
-                is Resource.Error -> _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = result.message ?: "An unexpected error occurred!!"
-                )
+                is Resource.Error -> {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = result.message ?: "An unexpected error occurred!!"
+                    )
+                    AppAnalytics.logEvent(
+                        analytics,
+                        "result_lookup_failure",
+                        mapOf("result_type" to "academic")
+                    )
+                }
 
                 is Resource.Success -> {
                     val data = result.data
@@ -114,7 +124,20 @@ class StudentResultViewModel @Inject constructor(
                         error = if (data?.details == null) "No student result was found." else ""
                     )
                     viewModelScope.launch { saveStudentDetails(data?.details, data?.academicResult) }
-                    if (data?.details != null) subscribeToResultNotifications(rollNumber)
+                    if (data?.details != null) {
+                        subscribeToResultNotifications(rollNumber)
+                        AppAnalytics.logEvent(
+                            analytics,
+                            "result_lookup_success",
+                            mapOf("result_type" to "academic")
+                        )
+                    } else {
+                        AppAnalytics.logEvent(
+                            analytics,
+                            "result_lookup_failure",
+                            mapOf("result_type" to "academic")
+                        )
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -201,11 +224,7 @@ class StudentResultViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { notificationRepository.subscribeToRoll(rollNumber) }
                 .onFailure { error ->
-                    Log.e(
-                        "ResultSubscription",
-                        "Automatic subscription failed for roll $rollNumber",
-                        error
-                    )
+                    Timber.tag("ResultSubscription").e(error, "Automatic subscription failed")
                 }
         }
     }

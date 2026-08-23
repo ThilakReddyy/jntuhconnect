@@ -2,7 +2,11 @@ package com.dhethi.jntuhconnect.presentation.components
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilterChip
@@ -11,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import com.dhethi.jntuhconnect.presentation.theme.Dimens
 
 /**
@@ -47,4 +52,34 @@ fun FilterChipRow(
             )
         }
     }
+}
+
+/** Titled group of chips wrapped in a [FlowRow], used by filter/preference sheets. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FilterGroup(title: String, content: @Composable () -> Unit) {
+    Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(Dimens.spaceSm))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
+        verticalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
+    ) { content() }
+    Spacer(Modifier.height(Dimens.space))
+}
+
+/**
+ * Single chip whose selection meaning (single-select toggle-to-clear, or
+ * multi-select set-membership toggle) is entirely up to the caller's [onClick].
+ */
+@Composable
+fun ChoiceChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+        )
+    )
 }

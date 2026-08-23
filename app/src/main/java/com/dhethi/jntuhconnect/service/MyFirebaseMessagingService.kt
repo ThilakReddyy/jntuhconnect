@@ -60,7 +60,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 EXTRA_NOTIFICATION_DESTINATION,
                 data[EXTRA_NOTIFICATION_DESTINATION] ?: DESTINATION_UPDATES
             )
-            data[EXTRA_NOTIFICATION_LINK]?.let { putExtra(EXTRA_NOTIFICATION_LINK, it) }
+            // The backend sends the release link under the JSON key "link", not
+            // EXTRA_NOTIFICATION_LINK's own name ("notification_link") — that name
+            // is only this app's internal Intent-extra key for routing.
+            data[DATA_KEY_LINK]?.let { putExtra(EXTRA_NOTIFICATION_LINK, it) }
             data[EXTRA_NOTIFICATION_ROLL_NUMBER]?.let {
                 putExtra(EXTRA_NOTIFICATION_ROLL_NUMBER, it)
             }
@@ -105,6 +108,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
+        private const val DATA_KEY_LINK = "link"
         const val EXTRA_NOTIFICATION_LINK = "notification_link"
         const val EXTRA_NOTIFICATION_DESTINATION = "destination"
         const val EXTRA_NOTIFICATION_ROLL_NUMBER = "rollNumber"

@@ -6,8 +6,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,8 +27,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,8 +55,10 @@ import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.domain.model.LatestNotification
 import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.AppTopBar
+import com.dhethi.jntuhconnect.presentation.components.ChoiceChip
 import com.dhethi.jntuhconnect.presentation.components.EmptyState
 import com.dhethi.jntuhconnect.presentation.components.FilterChipRow
+import com.dhethi.jntuhconnect.presentation.components.FilterGroup
 import com.dhethi.jntuhconnect.presentation.components.PrimaryButton
 import com.dhethi.jntuhconnect.presentation.components.StatusChip
 import com.dhethi.jntuhconnect.presentation.components.TonalButton
@@ -268,7 +266,7 @@ private fun UpdateCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UpdatesFilterSheet(
     state: UpdatesState,
@@ -281,11 +279,6 @@ private fun UpdatesFilterSheet(
     var regulation by remember { mutableStateOf(state.regulation) }
     var year by remember { mutableStateOf(state.year) }
     var title by remember { mutableStateOf(state.titleQuery) }
-
-    val degreeCodes = mapOf(
-        "B.Tech" to "btech", "B.Pharmacy" to "bpharmacy", "M.Tech" to "mtech",
-        "M.Pharmacy" to "mpharmacy", "MBA" to "mba", "MCA" to "mca"
-    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -330,7 +323,7 @@ private fun UpdatesFilterSheet(
                 TonalButton(text = "Clear", onClick = onClear, modifier = Modifier.weight(1f))
                 PrimaryButton(
                     text = "Apply",
-                    onClick = { onApply(degreeLabel, degreeCodes[degreeLabel] ?: "", regulation, year, title) },
+                    onClick = { onApply(degreeLabel, ContentData.degreeCodes[degreeLabel] ?: "", regulation, year, title) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -338,27 +331,3 @@ private fun UpdatesFilterSheet(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun FilterGroup(title: String, content: @Composable () -> Unit) {
-    Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-    Spacer(Modifier.height(Dimens.spaceSm))
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
-        verticalArrangement = Arrangement.spacedBy(Dimens.spaceSm),
-    ) { content() }
-    Spacer(Modifier.height(Dimens.space))
-}
-
-@Composable
-private fun ChoiceChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(label) },
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-        )
-    )
-}

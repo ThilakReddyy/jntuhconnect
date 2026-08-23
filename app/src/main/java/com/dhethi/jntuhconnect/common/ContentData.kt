@@ -12,6 +12,14 @@ object ContentData {
 
     // ---- Notification / syllabus filters (from the frontend constants) ----
     val degrees = listOf("B.Tech", "B.Pharmacy", "M.Tech", "M.Pharmacy", "MBA", "MCA")
+    val degreeCodes = mapOf(
+        "B.Tech" to "btech",
+        "B.Pharmacy" to "bpharmacy",
+        "M.Tech" to "mtech",
+        "M.Pharmacy" to "mpharmacy",
+        "MBA" to "mba",
+        "MCA" to "mca"
+    )
     val examYears = listOf("2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018")
     val regulations = listOf(
         "R25" to "2025-2029",

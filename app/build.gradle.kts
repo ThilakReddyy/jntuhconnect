@@ -1,4 +1,5 @@
 import java.util.Properties
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android") // Hilt plugin
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 }
 
 // --- Auto-versioning -------------------------------------------------------
@@ -92,6 +95,13 @@ android {
             ndk {
                 debugSymbolLevel = "FULL" // options: NONE, SYMBOL_TABLE, FULL
             }
+            // Uploads the mapping file + the NDK symbols the block above
+            // already generates (previously produced but never uploaded
+            // anywhere) so Crashlytics can deobfuscate/symbolicate crashes.
+            configure<CrashlyticsExtension> {
+                mappingFileUploadEnabled = true
+                nativeSymbolUploadEnabled = true
+            }
         }
     }
     compileOptions {
@@ -151,8 +161,13 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-crashlytics-ndk")
+    implementation("com.google.firebase:firebase-perf")
 
     // Google Play In-App Updates
     implementation(libs.app.update)
+
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
 }
