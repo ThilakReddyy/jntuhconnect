@@ -124,6 +124,22 @@ requests. Debug uses demo IDs; release enables ads only with both configured
 production IDs. Developer-site seller authorization is served separately through
 the web application's `public/app-ads.txt`.
 
+## Feedback reminders
+
+`presentation/feedback/` owns an optional Home-only rating prompt. DataStore
+persists its first-use timestamp, last shown/deferred timestamp, unfinished
+rating, and user-confirmed completion. A prompt is reserved atomically before
+display; first use and each deferral require five full days before another ask.
+Home must be resumed for 20 seconds and have no update snackbar visible.
+
+Ratings of 4–5 offer an external Google Play listing; 1–3 offer an `ACTION_SENDTO`
+email to `thilakreddy@dhethi.com`. No in-app review API is used. External activity
+results are not submission receipts: completion is recorded only after an
+explicit user confirmation, including an **I've already shared feedback**
+action. Pending ratings survive process death and resume at the next eligible
+reminder, preserving the five-day cooldown. Confirmed completion prevents
+future reminders while local app data remains available.
+
 ## Build and release
 
 Gradle version catalogs pin plugins/libraries. Release builds enable R8/resource shrinking and full native debug symbols. `app/version.properties` holds the base version code:

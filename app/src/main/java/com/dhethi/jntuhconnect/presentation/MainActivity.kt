@@ -62,6 +62,7 @@ import com.dhethi.jntuhconnect.presentation.chatbot.ChatbotScreen
 import com.dhethi.jntuhconnect.presentation.classresult.ClassResultScreen
 import com.dhethi.jntuhconnect.presentation.contrast.ResultContrastScreen
 import com.dhethi.jntuhconnect.presentation.explore.ExploreScreen
+import com.dhethi.jntuhconnect.presentation.feedback.FeedbackPrompt
 import com.dhethi.jntuhconnect.presentation.gracemarks.GraceMarksScreen
 import com.dhethi.jntuhconnect.presentation.home.HomeScreen
 import com.dhethi.jntuhconnect.presentation.profile.ProfileScreen
@@ -255,6 +256,11 @@ private fun AppNavigation(
 
     // Nudges the user to update once a newer version is live on the Play Store.
     InAppUpdateHandler(snackbarHostState)
+
+    FeedbackPrompt(
+        isHome = currentRoute == Screen.Home.route && notificationDestination == null,
+        otherPromptVisible = snackbarHostState.currentSnackbarData != null
+    )
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

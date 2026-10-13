@@ -252,6 +252,22 @@ The current badge-update step still calculates `18 + GITHUB_RUN_NUMBER`, while `
 ### Release Build
 The release build has **ProGuard/R8 minification enabled** with full NDK debug symbols for better crash reports.
 
+### Feedback reminders
+
+After five days of using the feedback-enabled app, Home offers an optional 1–5
+star experience rating. Reminders appear at most once every five days; choosing
+**Not now** starts another five-day wait. They appear only after Home has been
+resumed for 20 seconds, after onboarding and while no update snackbar is visible.
+
+For 4–5 stars, users can open the Google Play listing to leave a rating or review.
+For 1–3 stars, **Write feedback** opens an email composer addressed to
+`thilakreddy@dhethi.com`. Emails are sent only by the user. Google Play and email
+apps do not report whether feedback was submitted, so returning from either
+shows a confirmation. **I've already shared feedback** or **Yes, I've shared it**
+permanently stops reminders for this app's stored data. Dismissing or cancelling
+the external flow does not count as completed feedback. Schedule, unfinished
+rating and completion state persist across app restarts and updates.
+
 ### Results banner ads
 
 Student results have one inline adaptive AdMob banner after the selected tab's
