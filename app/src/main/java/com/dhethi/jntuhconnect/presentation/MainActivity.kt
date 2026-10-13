@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +50,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.dhethi.jntuhconnect.presentation.components.CustomBottomBar
+import com.dhethi.jntuhconnect.presentation.ads.AdsConsentManager
+import com.dhethi.jntuhconnect.presentation.ads.LocalAdsConsentManager
 import com.dhethi.jntuhconnect.presentation.components.openCustomTab
 import com.dhethi.jntuhconnect.presentation.content.CalendarsScreen
 import com.dhethi.jntuhconnect.presentation.careers.CareersScreen
@@ -80,6 +83,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
+    lateinit var adsConsentManager: AdsConsentManager
+
+    @Inject
     lateinit var appPreferences: AppPreferences
 
     @Inject
@@ -106,16 +112,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             val appViewModel: AppViewModel = hiltViewModel()
             val themeMode by appViewModel.themeMode.collectAsState()
-            JntuhConnectTheme(themeMode = themeMode) {
-                AppNavigation(
-                    notificationDestination = pendingNotificationDestination,
-                    onNotificationDestinationHandled = {
-                        pendingNotificationDestination = null
-                    }
-                )
+            CompositionLocalProvider(LocalAdsConsentManager provides adsConsentManager) {
+                JntuhConnectTheme(themeMode = themeMode) {
+                    AppNavigation(
+                        notificationDestination = pendingNotificationDestination,
+                        onNotificationDestinationHandled = {
+                            pendingNotificationDestination = null
+                        }
+                    )
+                }
             }
         }
         handleNotificationIntent(intent)
+        adsConsentManager.gatherConsent(this)
         scheduleNotificationPermissionRequest()
     }
 

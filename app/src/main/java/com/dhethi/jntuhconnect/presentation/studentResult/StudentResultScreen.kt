@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.Constants
+import com.dhethi.jntuhconnect.presentation.ads.ResultsBannerAd
+import com.dhethi.jntuhconnect.presentation.ads.rememberResultsBannerState
 import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.ErrorScreen
 import com.dhethi.jntuhconnect.presentation.components.EmptyState
@@ -56,6 +58,7 @@ private fun StudentResultContent(
     navigateBack: () -> Unit
 ) {
     val state = viewModel.state.value
+    val banner = rememberResultsBannerState()
 
     Column(
         modifier = Modifier
@@ -103,6 +106,14 @@ private fun StudentResultContent(
                             TabContent(state.currentTab, state, viewModel::retryTab)
                         }
                         item { Spacer(Modifier.height(Dimens.spaceXxl)) }
+                        if (state.selectedResultsReady) {
+                            item(key = "results-banner") {
+                                ResultsBannerAd(
+                                    banner = banner,
+                                    modifier = Modifier.padding(horizontal = Dimens.space)
+                                )
+                            }
+                        }
 
                     }
                 }

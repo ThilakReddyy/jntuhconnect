@@ -18,6 +18,36 @@ Treat any `main` push—including documentation changes—as a release action.
 
 Restrict the Play service account to required app/track permissions. Rotate signing/deployment credentials according to the Play account recovery plan; never commit them.
 
+## Configure AdMob
+
+Supply these public IDs as GitHub repository **variables** for CI, or as Gradle
+properties (e.g. in `~/.gradle/gradle.properties`) or environment variables locally:
+
+| Variable | Value from AdMob |
+|---|---|
+| `ADMOB_APP_ID` | Android app ID, `ca-app-pub-…~…` |
+| `ADMOB_RESULTS_BANNER_ID` | Banner ad unit ID, `ca-app-pub-…/…` |
+
+Debug always uses Google's test IDs. Release ads are disabled if either production
+ID is missing or uses the configured test ID. The publisher ID in `app-ads.txt`
+cannot substitute for either ID. Set the banner's automatic refresh to **Disabled**
+in AdMob to retain one ad per results visit, and configure UMP messages in
+**Privacy & messaging**. Account for the Mobile Ads SDK in the Play ads declaration,
+Data safety form and published privacy policy before enabling production ads.
+
+The developer website in the Play listing is `https://jntuhconnect.dhethi.com`.
+Deploy `JNTUHRESULTS-WEB/public/app-ads.txt` with the existing static website so
+`https://jntuhconnect.dhethi.com/app-ads.txt` returns HTTP 200 and plain text:
+
+```text
+google.com, pub-5512897194230969, DIRECT, f08c47fec0942fa0
+```
+
+The Android repository's root `app-ads.txt` is a reference copy, not a hosted file.
+After deployment, open the URL and check the seller record, then use
+**AdMob → Apps → View all apps → app-ads.txt → Check for updates** to request
+verification. See [Google's app-ads.txt setup guide](https://support.google.com/admob/answer/9363762).
+
 ## Versioning
 
 `app/version.properties` is the local base. `versionName` is `1.0.<versionCode>`.

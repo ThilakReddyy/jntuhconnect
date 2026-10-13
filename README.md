@@ -252,6 +252,31 @@ The current badge-update step still calculates `18 + GITHUB_RUN_NUMBER`, while `
 ### Release Build
 The release build has **ProGuard/R8 minification enabled** with full NDK debug symbols for better crash reports.
 
+### Results banner ads
+
+Student results have one inline adaptive AdMob banner after the selected tab's
+results. It scrolls with the page, is capped at 60 dp, and reserves its space to
+avoid content jumps. Result fetching never waits for ads. Loading, failed and
+empty result tabs do not show ads. Ad failures are silent, and scrolling or tab
+switches reuse the screen's ad rather than requesting another one. Automatic
+refresh is controlled by the banner unit's AdMob settings; turn it off for the
+calmest experience.
+
+Debug builds always use Google's test app and banner IDs. Release builds leave
+ads disabled until both `ADMOB_APP_ID` and `ADMOB_RESULTS_BANNER_ID` are set as
+Gradle properties or environment variables. CI reads GitHub repository variables
+with those names. See [Deployment](DEPLOYMENT.md#configure-admob) for setup.
+
+UMP checks consent at launch. Configure messages in AdMob's **Privacy & messaging**;
+**Profile → About → Ad privacy choices** appears when UMP requires that entry point.
+SDK initialization runs in the background after results are ready and the banner
+slot enters composition. Ad requests do not include student details or marks.
+
+[`app-ads.txt`](app-ads.txt) contains the authorized seller entry. The website copy
+is `JNTUHRESULTS-WEB/public/app-ads.txt` and must be deployed to
+`https://jntuhconnect.dhethi.com/app-ads.txt`, matching the developer website in
+the Google Play listing. Adding it to the Android repository alone does not host it.
+
 ---
 
 ## 🤖 CI/CD — Auto-deploy to Play Store

@@ -12,6 +12,8 @@ firebaseMessagingKtx = "25.0.1"
 animationCore = "1.9.4"
 appUpdate = "2.1.0"
 navigation = "2.9.8"
+googleMobileAds = "25.5.0"
+userMessagingPlatform = "4.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +34,8 @@ firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messa
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 app-update = { group = "com.google.android.play", name = "app-update", version.ref = "appUpdate" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigation" }
+google-mobile-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "googleMobileAds" }
+google-user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -27,4 +27,15 @@ data class StudentResultState(
     val backlogError: String = "",
     val creditsError: String = "",
     val currentTab: String = Constants.ACADEMIC_RESULTS
-)
+) {
+    val selectedResultsReady: Boolean
+        get() = studentDetails != null && when (currentTab) {
+            Constants.ACADEMIC_RESULTS -> academicLoaded && !isLoading && error.isEmpty() &&
+                !academicResult?.semesters.isNullOrEmpty()
+            Constants.ALL_RESULTS -> allLoaded && !allLoading && allError.isEmpty() && !allResult.isNullOrEmpty()
+            Constants.BACKLOG_RESULTS -> backlogLoaded && !backlogLoading && backlogError.isEmpty() && backlogResult != null
+            Constants.CREDIT_RESULTS -> creditsLoaded && !creditsLoading && creditsError.isEmpty() &&
+                creditsResult?.available == true && creditsResult.credits != null
+            else -> false
+        }
+}

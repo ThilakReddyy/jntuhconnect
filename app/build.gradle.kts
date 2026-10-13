@@ -35,6 +35,24 @@ val appVersionCode = run {
     }
 }
 
+// Debug always uses Google's demo inventory. Release ads remain off until both
+// production IDs are supplied through Gradle properties or CI environment vars.
+val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+val testResultsBannerId = "ca-app-pub-3940256099942544/9214589741"
+val productionAdMobAppId = providers.gradleProperty("ADMOB_APP_ID")
+    .orElse(providers.environmentVariable("ADMOB_APP_ID")).orNull.orEmpty().trim()
+val productionResultsBannerId = providers.gradleProperty("ADMOB_RESULTS_BANNER_ID")
+    .orElse(providers.environmentVariable("ADMOB_RESULTS_BANNER_ID")).orNull.orEmpty().trim()
+require(productionAdMobAppId.isEmpty() || productionAdMobAppId.matches(Regex("ca-app-pub-[0-9]{16}~[0-9]{10}"))) {
+    "ADMOB_APP_ID must be a valid AdMob app ID (ca-app-pub-…~…)."
+}
+require(productionResultsBannerId.isEmpty() || productionResultsBannerId.matches(Regex("ca-app-pub-[0-9]{16}/[0-9]{10}"))) {
+    "ADMOB_RESULTS_BANNER_ID must be a valid banner ad unit ID (ca-app-pub-…/…)."
+}
+val productionAdsEnabled = productionAdMobAppId.isNotEmpty() &&
+    productionResultsBannerId.isNotEmpty() &&
+    productionAdMobAppId != testAdMobAppId && productionResultsBannerId != testResultsBannerId
+
 android {
     namespace = "com.dhethi.jntuhconnect"
     compileSdk = 36
@@ -64,14 +82,20 @@ android {
 
     buildTypes {
         debug {
+            manifestPlaceholders["adMobAppId"] = testAdMobAppId
+            buildConfigField("Boolean", "RESULTS_ADS_ENABLED", "true")
+            buildConfigField("String", "ADMOB_RESULTS_BANNER_ID", "\"$testResultsBannerId\"")
             // Android Emulator alias for the development machine's localhost.
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"http://10.0.2.2:8000/api/\""
+                "\"https://jntuhresults.dhethi.com/api/\""
             )
         }
         release {
+            manifestPlaceholders["adMobAppId"] = if (productionAdsEnabled) productionAdMobAppId else testAdMobAppId
+            buildConfigField("Boolean", "RESULTS_ADS_ENABLED", productionAdsEnabled.toString())
+            buildConfigField("String", "ADMOB_RESULTS_BANNER_ID", "\"$productionResultsBannerId\"")
             buildConfigField(
                 "String",
                 "API_BASE_URL",
@@ -154,5 +178,8 @@ dependencies {
 
     // Google Play In-App Updates
     implementation(libs.app.update)
+
+    implementation(libs.google.mobile.ads)
+    implementation(libs.google.user.messaging.platform)
 
 }

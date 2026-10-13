@@ -21,6 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JntuhConnect"
         tools:targetApi="33">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${adMobAppId}" />
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"

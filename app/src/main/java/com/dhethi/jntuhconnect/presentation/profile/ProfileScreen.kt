@@ -1,6 +1,7 @@
 package com.dhethi.jntuhconnect.presentation.profile
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -67,6 +68,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dhethi.jntuhconnect.common.ContentData
 import com.dhethi.jntuhconnect.presentation.Screen
+import com.dhethi.jntuhconnect.presentation.ads.LocalAdsConsentManager
 import com.dhethi.jntuhconnect.presentation.components.AppCard
 import com.dhethi.jntuhconnect.presentation.components.SectionHeader
 import com.dhethi.jntuhconnect.presentation.components.StatusBarScrim
@@ -115,6 +117,8 @@ fun ProfileScreen(
     onOpenRoute: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val adsConsentManager = LocalAdsConsentManager.current
+    val adsConsent = adsConsentManager?.state?.collectAsState()?.value
     val themeMode by viewModel.themeMode.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val notificationUpdateInProgress by viewModel.notificationUpdateInProgress.collectAsState()
@@ -315,6 +319,16 @@ fun ProfileScreen(
                         shareApp(context)
                     }
                     SettingsDivider()
+                    if (adsConsent?.privacyOptionsRequired == true && context is Activity) {
+                        LinkRow(
+                            icon = Icons.Rounded.Info,
+                            title = "Ad privacy choices",
+                            subtitle = "Review your advertising consent"
+                        ) {
+                            adsConsentManager.showPrivacyOptions(context)
+                        }
+                        SettingsDivider()
+                    }
                     VersionRow(version)
                 }
             }
