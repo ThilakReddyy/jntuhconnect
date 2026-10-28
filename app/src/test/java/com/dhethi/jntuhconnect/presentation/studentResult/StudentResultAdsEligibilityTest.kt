@@ -53,11 +53,24 @@ class StudentResultAdsEligibilityTest {
     }
 
     @Test
-    fun zeroBacklogsIsAValidResultButMissingOrFailedBacklogsIsNot() {
+    fun zeroBacklogsDoesNotEnableAdsEvenWhenAnotherTabHasResults() {
         val state = academic.copy(currentTab = Constants.BACKLOG_RESULTS)
         assertFalse(state.copy(backlogLoaded = true).selectedResultsReady)
-        val loaded = state.copy(backlogLoaded = true, backlogResult = BacklogResult(emptyList(), 0))
+        assertFalse(state.copy(
+            backlogLoaded = true,
+            backlogResult = BacklogResult(emptyList(), 0)
+        ).selectedResultsReady)
+    }
+
+    @Test
+    fun activeBacklogsEnableAdsOnlyAfterSuccessfulLoading() {
+        val loaded = academic.copy(
+            currentTab = Constants.BACKLOG_RESULTS,
+            backlogLoaded = true,
+            backlogResult = BacklogResult(emptyList(), 1)
+        )
         assertTrue(loaded.selectedResultsReady)
+        assertFalse(loaded.copy(backlogLoaded = false).selectedResultsReady)
         assertFalse(loaded.copy(backlogError = "Offline").selectedResultsReady)
         assertFalse(loaded.copy(backlogLoading = true).selectedResultsReady)
     }
