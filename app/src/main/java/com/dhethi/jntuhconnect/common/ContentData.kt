@@ -62,6 +62,31 @@ object ContentData {
         SocialLink("Instagram", "https://www.instagram.com/__thilak_reddy__/")
     )
 
+    // ---- Contribute ----
+    data class ContributionRepository(
+        val name: String,
+        val description: String,
+        val url: String
+    )
+
+    val contributionRepositories = listOf(
+        ContributionRepository(
+            name = "Android app",
+            description = "Improve the Android experience, fix bugs, or add features.",
+            url = "https://github.com/ThilakReddyy/jntuhconnect"
+        ),
+        ContributionRepository(
+            name = "Backend API",
+            description = "Help improve result processing, APIs, and reliability.",
+            url = "https://github.com/ThilakReddyy/jntuh-backend"
+        ),
+        ContributionRepository(
+            name = "Web app",
+            description = "Build features and improve the website for students.",
+            url = "https://github.com/ThilakReddyy/JNTUHRESULTS-WEB"
+        )
+    )
+
     // Academic calendars and syllabus are now fetched live from the backend
     // (GET /api/calendars, GET /api/syllabus) — see the content drill-down screens.
 

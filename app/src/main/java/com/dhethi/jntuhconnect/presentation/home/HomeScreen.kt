@@ -365,14 +365,6 @@ private fun HomeHero(
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.035f))
         )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .offset(x = (-42).dp, y = 58.dp)
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.025f))
-        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()

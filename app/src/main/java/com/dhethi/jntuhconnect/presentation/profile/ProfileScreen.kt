@@ -33,6 +33,7 @@ import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Email
@@ -54,6 +55,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -117,6 +119,7 @@ fun ProfileScreen(
     onOpenRoute: (String) -> Unit
 ) {
     val context = LocalContext.current
+    var showContribute by rememberSaveable { mutableStateOf(false) }
     val adsConsentManager = LocalAdsConsentManager.current
     val adsConsent = adsConsentManager?.state?.collectAsState()?.value
     val themeMode by viewModel.themeMode.collectAsState()
@@ -311,6 +314,14 @@ fun ProfileScreen(
                     contentPadding = PaddingValues(vertical = Dimens.spaceXs)
                 ) {
                     LinkRow(
+                        icon = Icons.Rounded.Code,
+                        title = "Contribute",
+                        subtitle = "Help build the Android app, backend, and website"
+                    ) {
+                        showContribute = true
+                    }
+                    SettingsDivider()
+                    LinkRow(
                         icon = Icons.Rounded.Share,
                         title = "Share JNTUH Connect",
                         subtitle = "Help classmates find results and resources",
@@ -337,6 +348,10 @@ fun ProfileScreen(
         if (isScrolled) {
             StatusBarScrim(brush = SolidColor(MaterialTheme.colorScheme.background))
         }
+    }
+
+    if (showContribute) {
+        ContributeSheet(onDismiss = { showContribute = false })
     }
 }
 
