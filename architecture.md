@@ -110,19 +110,21 @@ The repository restores topic state and re-registers subscribed rolls after toke
 
 ## Results advertising
 
-`presentation/ads/` owns an inline adaptive banner after successful student result
+`presentation/ads/` owns a native advanced card after successful student result
 content. Ads are independent of result use cases and never block result requests.
-The screen retains the banner across scrolling/tab changes, caps it at 60 dp,
-reserves its layout space, and pauses/destroys the SDK view with the UI lifecycle.
-Loading, error and empty tabs have no banner.
+The screen retains one `NativeAd` and `NativeAdView` across scrolling/tab changes.
+The SDK registers assets, clicks, impressions, and AdChoices; the layout supplies
+an Ad badge and a 180 dp `MediaView`. Video pauses when detached or backgrounded.
+Screen disposal or consent changes destroy the ad and invalidate late callbacks.
+Loading, error and empty tabs have no ad, and failures do not trigger retry loops.
 
 The Hilt singleton `AdsConsentManager` updates UMP consent on each activity launch.
 The SDK initializes on a background dispatcher only when consent permits requests
-and the result banner is composed. A composition local passes this manager to UI;
+and the results ad slot is composed. A composition local passes this manager to UI;
 Profile exposes UMP privacy options when required. No result data is added to ad
-requests. Debug uses demo IDs; release enables ads only with both configured
-production IDs. Developer-site seller authorization is served separately through
-the web application's `public/app-ads.txt`.
+requests. Debug uses demo IDs; release defaults to the app's production native IDs,
+with optional Gradle/environment overrides. Developer-site seller authorization
+is served separately through the web application's `public/app-ads.txt`.
 
 ## Feedback reminders
 

@@ -42,7 +42,7 @@ jobs:
       - name: Build signed release bundle
         env:
           ADMOB_APP_ID: ${{ vars.ADMOB_APP_ID }}
-          ADMOB_RESULTS_BANNER_ID: ${{ vars.ADMOB_RESULTS_BANNER_ID }}
+          ADMOB_RESULTS_NATIVE_ID: ${{ vars.ADMOB_RESULTS_NATIVE_ID }}
           KEYSTORE_FILE: ${{ runner.temp }}/upload-keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

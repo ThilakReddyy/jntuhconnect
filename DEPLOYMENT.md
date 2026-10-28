@@ -20,20 +20,25 @@ Restrict the Play service account to required app/track permissions. Rotate sign
 
 ## Configure AdMob
 
-Supply these public IDs as GitHub repository **variables** for CI, or as Gradle
-properties (e.g. in `~/.gradle/gradle.properties`) or environment variables locally:
+Release builds default to these public production IDs:
 
-| Variable | Value from AdMob |
+| Setting | Configured value |
 |---|---|
-| `ADMOB_APP_ID` | Android app ID, `ca-app-pub-…~…` |
-| `ADMOB_RESULTS_BANNER_ID` | Banner ad unit ID, `ca-app-pub-…/…` |
+| App ID | `ca-app-pub-5512897194230969~5533754978` |
+| Results native ad unit | `ca-app-pub-5512897194230969/1414828404` |
 
-Debug always uses Google's test IDs. Release ads are disabled if either production
-ID is missing or uses the configured test ID. The publisher ID in `app-ads.txt`
-cannot substitute for either ID. Set the banner's automatic refresh to **Disabled**
-in AdMob to retain one ad per results visit, and configure UMP messages in
-**Privacy & messaging**. Account for the Mobile Ads SDK in the Play ads declaration,
-Data safety form and published privacy policy before enabling production ads.
+The **RESULTS BANNER** unit must be **Native advanced**, matching the integration.
+Optional `ADMOB_APP_ID` and `ADMOB_RESULTS_NATIVE_ID` GitHub repository variables,
+Gradle properties, or environment variables override these defaults. Empty CI
+variables fall back to the configured IDs. The previous `ADMOB_RESULTS_BANNER_ID`
+setting is no longer used because banner and native units are different formats.
+Debug builds always use Google's test app and native ad IDs.
+
+Configure UMP messages in **Privacy & messaging**. Account for the Mobile Ads SDK in
+the Play ads declaration, Data safety form and published privacy policy. Validate
+with Google's demo native ads before release, including AdChoices visibility,
+light/dark themes and larger text. See the
+[native ad policies](https://support.google.com/admob/answer/6329638).
 
 The developer website in the Play listing is `https://jntuhconnect.dhethi.com`.
 Deploy `JNTUHRESULTS-WEB/public/app-ads.txt` with the existing static website so

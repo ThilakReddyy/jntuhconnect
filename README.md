@@ -268,25 +268,33 @@ permanently stops reminders for this app's stored data. Dismissing or cancelling
 the external flow does not count as completed feedback. Schedule, unfinished
 rating and completion state persist across app restarts and updates.
 
-### Results banner ads
+### Results native ads
 
-Student results have one inline adaptive AdMob banner after the selected tab's
-results. It scrolls with the page, is capped at 60 dp, and reserves its space to
-avoid content jumps. Result fetching never waits for ads. Loading, failed and
-empty result tabs do not show ads. Ad failures are silent, and scrolling or tab
-switches reuse the screen's ad rather than requesting another one. Automatic
-refresh is controlled by the banner unit's AdMob settings; turn it off for the
-calmest experience.
+Student results show one native AdMob card after the selected tab's results. It
+scrolls with the page and is separated from result controls. Loading, failed and
+empty result tabs do not show ads. Result fetching never waits for ads, ad failures
+are silent, and scrolling or tab switches reuse the screen's ad. Cached ads expire
+after an hour and are replaced when the slot is next visited or the screen resumes.
 
-Debug builds always use Google's test app and banner IDs. Release builds leave
-ads disabled until both `ADMOB_APP_ID` and `ADMOB_RESULTS_BANNER_ID` are set as
-Gradle properties or environment variables. CI reads GitHub repository variables
-with those names. See [Deployment](DEPLOYMENT.md#configure-admob) for setup.
+Release builds use app ID `ca-app-pub-5512897194230969~5533754978` and native ad
+unit `ca-app-pub-5512897194230969/1414828404` (named **RESULTS BANNER** in AdMob).
+The unit must use the **Native advanced** format. Debug builds always use Google's
+test app and native ad IDs. Optional `ADMOB_APP_ID` and `ADMOB_RESULTS_NATIVE_ID`
+Gradle properties or environment variables override release defaults; CI reads
+repository variables with those names. See [Deployment](DEPLOYMENT.md#configure-admob).
+
+The native layout registers the headline, icon, body, advertiser, media and call to
+action with `NativeAdView`, which handles clicks and impressions. It includes an
+**Ad** badge, space for the SDK's AdChoices overlay, and a 180 dp media view. Text
+wraps without truncation and the card follows the app's light/dark theme. See
+[Google's native implementation guide](https://developers.google.com/admob/android/native/advanced)
+and [native ad policies](https://support.google.com/admob/answer/6329638).
 
 UMP checks consent at launch. Configure messages in AdMob's **Privacy & messaging**;
 **Profile → About → Ad privacy choices** appears when UMP requires that entry point.
-SDK initialization runs in the background after results are ready and the banner
-slot enters composition. Ad requests do not include student details or marks.
+SDK initialization runs in the background after results are ready and the ad slot
+enters composition. Consent changes clear the ad even when it is off screen, and
+late callbacks release their ads. Ad requests do not include student details or marks.
 
 [`app-ads.txt`](app-ads.txt) contains the authorized seller entry. The website copy
 is `JNTUHRESULTS-WEB/public/app-ads.txt` and must be deployed to

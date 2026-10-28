@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+        <string name="ad_attribution">Ad</string>
         <string name="error_roll_length">Enter a valid 10-character roll number</string>
         <string name="error_roll_empty">Roll number cannot be empty</string>
 
